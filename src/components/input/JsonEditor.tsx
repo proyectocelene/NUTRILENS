@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
-import { Clipboard, Wand2, Trash2, AlertCircle, CheckCircle2, FileCode, Check } from 'lucide-react';
+import { Clipboard, Wand2, Trash2, AlertCircle, CheckCircle2, FileCode, Check, Bot } from 'lucide-react';
 import { Button } from '../common/Button';
-import { JSON_BLANK_SCHEMA_TEMPLATE } from '../../db/seedData';
+import { JSON_BLANK_SCHEMA_TEMPLATE, MASTER_AI_NUTRITION_PROMPT } from '../../db/seedData';
 
 interface JsonEditorProps {
   value: string;
@@ -16,6 +16,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
   error,
   isValid = true
 }) => {
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [copiedTemplate, setCopiedTemplate] = useState(false);
 
   const handlePasteClipboard = async () => {
@@ -27,6 +28,12 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
     } catch (err) {
       console.warn('Clipboard read permission denied or not supported', err);
     }
+  };
+
+  const handleCopyPrompt = () => {
+    navigator.clipboard.writeText(MASTER_AI_NUTRITION_PROMPT);
+    setCopiedPrompt(true);
+    setTimeout(() => setCopiedPrompt(false), 2000);
   };
 
   const handleCopyTemplate = () => {
@@ -68,6 +75,20 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
         </div>
 
         <div className="flex items-center gap-1 sm:gap-1.5 self-end sm:self-auto w-full sm:w-auto flex-wrap">
+          {/* Botón Copiar Prompt para IA Externa */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleCopyPrompt}
+            icon={copiedPrompt ? <Check size={13} className="text-indigo-600" /> : <Bot size={13} className="text-indigo-700" />}
+            className="text-xs py-1.5 px-2.5 bg-indigo-50/70 border-indigo-200 hover:bg-indigo-100 text-indigo-900"
+            title="Copiar prompt completo para ChatGPT, Claude o DeepSeek con los 24 nutrientes"
+          >
+            {copiedPrompt ? '¡Prompt Copiado!' : 'Copiar Prompt IA'}
+          </Button>
+
+          {/* Botón Copiar Plantilla JSON */}
           <Button
             type="button"
             variant="outline"
@@ -75,7 +96,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
             onClick={handleCopyTemplate}
             icon={copiedTemplate ? <Check size={13} className="text-emerald-600" /> : <FileCode size={13} className="text-emerald-700" />}
             className="text-xs py-1.5 px-2.5"
-            title="Copiar plantilla vacía JSON con todos los micronutrientes"
+            title="Copiar plantilla vacía JSON con los 24 nutrientes"
           >
             {copiedTemplate ? '¡Plantilla Copiada!' : 'Copiar Formato'}
           </Button>
