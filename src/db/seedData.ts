@@ -131,6 +131,61 @@ REGLAS ESTRICTAS:
   }
 }`;
 
+// Prompt maestro para generar alimentos canónicos individuales o en lote con IA externa
+export const MASTER_CANONICAL_FOODS_AI_PROMPT = `Actúa como un experto en tablas de composición nutricional oficial de alimentos y etiquetado (USDA / LATAM).
+Por favor, analiza y genera las fichas canónicas estandarizadas para el/los siguientes productos:
+"[ESCRIBE AQUÍ TUS PRODUCTOS O MARCAS, EJEMPLO: Pan Bimbo Cero Cero, Leche Alpura Pro, Jamón Pechuga de Pavo San Rafael, Atún Dolores en Agua, Aguacate Hass]"
+
+REGLAS ESTRICTAS:
+1. Extrae o calcula el tamaño de porción real por unidad comercial o por 100g.
+2. ES OBLIGATORIO calcular y devolver los 24 nutrientes y lípidos exactos por porción sin omitir ninguno:
+   - Lípidos: saturated_fat_g, monounsaturated_fat_g, polyunsaturated_fat_g, trans_fat_g, omega3_g, cholesterol_mg, choline_mg
+   - Vitaminas: vitamin_c_mg, vitamin_d_iu, vitamin_a_mcg, vitamin_b12_mcg, vitamin_b6_mg, folate_mcg, vitamin_e_mg, vitamin_k_mcg
+   - Minerales y otros: iron_mg, magnesium_mg, potassium_mg, calcium_mg, zinc_mg, sodium_mg, phosphorus_mg, selenium_mcg, sugar_g
+3. Responde ÚNICA Y EXCLUSIVAMENTE con un arreglo JSON [ ... ] válido (sin texto extra):
+
+[
+  {
+    "name": "Nombre completo del producto",
+    "brand": "Marca comercial",
+    "servingSize": "2 rebanadas (60g)",
+    "servingGrams": 60,
+    "calories": 140,
+    "protein": 7.0,
+    "carbs": 23.0,
+    "fat": 1.5,
+    "fiber": 3.5,
+    "category": "grains",
+    "notes": "Sin sellos, 0% azúcares añadidos",
+    "nutrients": {
+      "saturated_fat_g": 0.2,
+      "monounsaturated_fat_g": 0.4,
+      "polyunsaturated_fat_g": 0.7,
+      "trans_fat_g": 0.0,
+      "omega3_g": 0.0,
+      "cholesterol_mg": 0,
+      "choline_mg": 14,
+      "sugar_g": 1.5,
+      "iron_mg": 1.5,
+      "magnesium_mg": 32,
+      "potassium_mg": 95,
+      "calcium_mg": 80,
+      "zinc_mg": 0.9,
+      "sodium_mg": 180,
+      "vitamin_c_mg": 0,
+      "vitamin_d_iu": 0,
+      "vitamin_a_mcg": 0,
+      "vitamin_b12_mcg": 0,
+      "vitamin_b6_mg": 0.2,
+      "folate_mcg": 65,
+      "vitamin_e_mg": 0.3,
+      "vitamin_k_mcg": 1.5,
+      "selenium_mcg": 18.2,
+      "phosphorus_mg": 90
+    }
+  }
+]`;
+
 // Plantilla estructurada completa con guía de los 24 nutrientes
 export const JSON_BLANK_SCHEMA_TEMPLATE = JSON.stringify({
   "name": "Nombre del Plato o Comida (ej: Sándwich de Pavo y Huevo con Café)",

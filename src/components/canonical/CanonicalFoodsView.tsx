@@ -6,12 +6,13 @@ import {
   Plus, 
   Search, 
   Trash2, 
-  Sparkles, 
+  Edit3,
+  Copy,
+  Check,
   ShieldCheck, 
-  Tag, 
-  FileText, 
-  Info,
-  Check
+  FileCode,
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import { db } from '../../db';
 import { dbService } from '../../db/dbService';
@@ -19,26 +20,34 @@ import { CanonicalFood } from '../../types/nutrition.types';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { LabelScannerModal } from './LabelScannerModal';
+import { CanonicalJsonModal } from './CanonicalJsonModal';
+import { getSmartFoodEmoji } from '../../utils/foodEmoji';
+import { awardXp } from '../../services/gamificationService';
 
 export const CanonicalFoodsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [editingFood, setEditingFood] = useState<CanonicalFood | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Formulario manual
-  const [manualName, setManualName] = useState('');
-  const [manualBrand, setManualBrand] = useState('');
-  const [manualServing, setManualServing] = useState('100g');
-  const [manualCalories, setManualCalories] = useState('');
-  const [manualProtein, setManualProtein] = useState('');
-  const [manualCarbs, setManualCarbs] = useState('');
-  const [manualFat, setManualFat] = useState('');
-  const [manualFiber, setManualFiber] = useState('');
-  const [manualSatFat, setManualSatFat] = useState('');
-  const [manualOmega3, setManualOmega3] = useState('');
-  const [manualCholesterol, setManualCholesterol] = useState('');
-  const [manualSodium, setManualSodium] = useState('');
+  const [formName, setFormName] = useState('');
+  const [formBrand, setFormBrand] = useState('');
+  const [formServing, setFormServing] = useState('100g');
+  const [formServingGrams, setFormServingGrams] = useState('100');
+  const [formCalories, setFormCalories] = useState('');
+  const [formProtein, setFormProtein] = useState('');
+  const [formCarbs, setFormCarbs] = useState('');
+  const [formFat, setFormFat] = useState('');
+  const [formFiber, setFormFiber] = useState('');
+  const [formCategory, setFormCategory] = useState<any>('other');
+  const [formNotes, setFormNotes] = useState('');
+
+  // 24 Nutrientes en Formulario
+  const [nutrients, setNutrients] = useState<Record<string, string>>({});
 
   const canonicalFoods = useLiveQuery(async () => {
     return await db.canonicalFoods.orderBy('name').toArray();
@@ -51,46 +60,93 @@ export const CanonicalFoodsView: React.FC = () => {
     return matchesSearch && matchesCat;
   });
 
-  const handleDelete = async (id: string) => {
-    await dbService.deleteCanonicalFood(id);
+  const openCreateModal = () => {
+    setEditingFood(null);
+    setFormName('');
+    setFormBrand('');
+    setFormServing('100g');
+    setFormServingGrams('100');
+    setFormCalories('');
+    setFormProtein('');
+    setFormCarbs('');
+    setFormFat('');
+    setFormFiber('');
+    setFormCategory('other');
+    setFormNotes('');
+    setNutrients({});
+    setIsManualModalOpen(true);
+  };
+
+  const openEditModal = (food: CanonicalFood) => {
+    setEditingFood(food);
+    setFormName(food.name);
+    setFormBrand(food.brand || '');
+    setFormServing(food.servingSize || '100g');
+    setFormServingGrams(String(food.servingGrams || 100));
+    setFormCalories(String(food.calories || 0));
+    setFormProtein(String(food.protein || 0));
+    setFormCarbs(String(food.carbs || 0));
+    setFormFat(String(food.fat || 0));
+    setFormFiber(String(food.fiber || 0));
+    setFormCategory(food.category || 'other');
+    setFormNotes(food.notes || '');
+
+    const nMap: Record<string, string> = {};
+    if (food.nutrients) {
+      for (const [k, v] of Object.entries(food.nutrients)) {
+        if (v !== undefined) nMap[k] = String(v);
+      }
+    }
+    setNutrients(nMap);
+    setIsManualModalOpen(true);
+  };
+
+  const handleCopySingleJson = (food: CanonicalFood) => {
+    navigator.clipboard.writeText(JSON.stringify(food, null, 2));
+    setCopiedId(food.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (window.confirm(`¿Seguro que deseas eliminar "${name}" del banco canónico?`)) {
+      await dbService.deleteCanonicalFood(id);
+    }
   };
 
   const handleSaveManual = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!manualName.trim()) return;
+    if (!formName.trim()) return;
 
-    const newFood: CanonicalFood = {
-      id: `canon_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      name: manualName.trim(),
-      brand: manualBrand.trim() || 'Genérico',
-      servingSize: manualServing.trim() || '100g',
-      calories: parseFloat(manualCalories) || 0,
-      protein: parseFloat(manualProtein) || 0,
-      carbs: parseFloat(manualCarbs) || 0,
-      fat: parseFloat(manualFat) || 0,
-      fiber: parseFloat(manualFiber) || 0,
-      category: 'other',
-      sourceType: 'manual',
-      nutrients: {
-        saturated_fat_g: manualSatFat ? parseFloat(manualSatFat) : undefined,
-        omega3_g: manualOmega3 ? parseFloat(manualOmega3) : undefined,
-        cholesterol_mg: manualCholesterol ? parseFloat(manualCholesterol) : undefined,
-        sodium_mg: manualSodium ? parseFloat(manualSodium) : undefined
-      },
-      createdAt: Date.now(),
+    const parsedNutrients: Record<string, number> = {};
+    for (const [k, v] of Object.entries(nutrients)) {
+      const num = parseFloat(v);
+      if (!isNaN(num) && num > 0) {
+        parsedNutrients[k] = num;
+      }
+    }
+
+    const foodData: CanonicalFood = {
+      id: editingFood ? editingFood.id : `canon_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      name: formName.trim(),
+      brand: formBrand.trim() || 'Genérico',
+      servingSize: formServing.trim() || '100g',
+      servingGrams: parseFloat(formServingGrams) || 100,
+      calories: parseFloat(formCalories) || 0,
+      protein: parseFloat(formProtein) || 0,
+      carbs: parseFloat(formCarbs) || 0,
+      fat: parseFloat(formFat) || 0,
+      fiber: parseFloat(formFiber) || 0,
+      category: formCategory,
+      notes: formNotes.trim() || undefined,
+      sourceType: editingFood ? editingFood.sourceType : 'manual',
+      nutrients: parsedNutrients,
+      createdAt: editingFood ? editingFood.createdAt : Date.now(),
       updatedAt: Date.now()
     };
 
-    await dbService.saveCanonicalFood(newFood);
+    await dbService.saveCanonicalFood(foodData);
+    if (!editingFood) awardXp(25, 'Alimento Canónico Registrado');
     setIsManualModalOpen(false);
-    // Limpiar campos
-    setManualName('');
-    setManualBrand('');
-    setManualCalories('');
-    setManualProtein('');
-    setManualCarbs('');
-    setManualFat('');
-    setManualFiber('');
   };
 
   return (
@@ -99,27 +155,33 @@ export const CanonicalFoodsView: React.FC = () => {
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10 space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold backdrop-blur-md">
-            <ShieldCheck size={14} /> Base de Datos Canónica Verificada
+            <ShieldCheck size={14} /> Base de Datos Canónica Personal ({canonicalFoods.length} Alimentos)
           </div>
           <h2 className="text-xl sm:text-2xl font-black tracking-tight">
-            Mi Banco de Alimentos & Etiquetas Canónicas
+            Banco Canónico de Alimentos & Etiquetas
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-            Registra y escanea la información nutrimental exacta de tus marcas habituales. Cada vez que registres comidas, <strong>la IA comparará tus alimentos con esta tabla</strong> para usar sus datos oficiales exactos sin discrepancias.
+            Tu base de datos personal con fichas nutrimentales exactas. Cada vez que registras una comida, <strong>la IA compara en vivo con estos alimentos</strong> y usa sus datos oficiales para eliminar discrepancias.
           </p>
 
-          <div className="flex items-center gap-3 pt-3 flex-wrap">
+          <div className="flex items-center gap-2.5 pt-3 flex-wrap">
             <button
               onClick={() => setIsScannerOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
+              className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-emerald-500/20 transition-all active:scale-95"
             >
-              <Camera size={16} /> 📸 Escanear Foto de Etiqueta
+              <Camera size={16} /> 📸 Escanear Etiqueta
             </button>
             <button
-              onClick={() => setIsManualModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-2 border border-white/20 transition-all"
+              onClick={openCreateModal}
+              className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-2 border border-white/20 transition-all"
             >
-              <Plus size={16} /> ➕ Agregar Manual / Ficha
+              <Plus size={16} /> ➕ Agregar Manual
+            </button>
+            <button
+              onClick={() => setIsJsonModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all"
+            >
+              <FileCode size={16} /> 📄 Editor / Lote JSON
             </button>
           </div>
         </div>
@@ -167,85 +229,106 @@ export const CanonicalFoodsView: React.FC = () => {
           <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-700 inline-block mb-3">
             <Database size={28} />
           </div>
-          <h4 className="text-sm font-bold text-slate-900 mb-1">Sin alimentos canónicos coincidentes</h4>
+          <h4 className="text-sm font-bold text-slate-900 mb-1">Sin alimentos coincidentes</h4>
           <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4">
-            Escanea la tabla nutrimental de un producto con la cámara o agrégalo manualmente para comenzar tu catálogo.
+            Escanea una etiqueta o agrega productos manualmente para alimentar tu base de datos.
           </p>
-          <button
-            onClick={() => setIsScannerOpen(true)}
-            className="px-4 py-2 rounded-xl bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-2 hover:bg-emerald-800 transition-all"
-          >
-            <Camera size={15} /> Escanear mi primer producto
-          </button>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {filteredFoods.map((food) => (
-            <Card key={food.id} className="border-slate-200 bg-white shadow-xs hover:border-emerald-300 transition-all">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-mono">
-                      {food.brand || 'Marca'}
-                    </span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">
-                      {food.sourceType === 'label_scan' ? '📸 Etiqueta IA' : '✍️ Canónico'}
-                    </span>
+          {filteredFoods.map((food) => {
+            const emoji = getSmartFoodEmoji(food.name);
+            return (
+              <Card key={food.id} className="border-slate-200 bg-white shadow-xs hover:border-emerald-300 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                      <div className="text-2xl p-2 rounded-2xl bg-slate-50 border border-slate-200 shrink-0">
+                        {emoji}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-mono">
+                            {food.brand || 'Marca'}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">
+                            {food.sourceType === 'label_scan' ? '📸 Etiqueta' : food.sourceType === 'json' ? '📄 JSON' : '✍️ Ficha'}
+                          </span>
+                        </div>
+
+                        <h4 className="text-sm font-bold text-slate-900 truncate">{food.name}</h4>
+                        <p className="text-xs text-slate-500 font-medium font-mono">Porción: {food.servingSize}</p>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-sm font-black text-amber-800 font-mono block">{food.calories} kcal</span>
+                      <div className="flex items-center justify-end gap-1 mt-1">
+                        <button
+                          onClick={() => handleCopySingleJson(food)}
+                          title="Copiar JSON con 24 nutrientes"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        >
+                          {copiedId === food.id ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                        </button>
+                        <button
+                          onClick={() => openEditModal(food)}
+                          title="Editar alimento"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(food.id, food.name)}
+                          title="Eliminar del banco"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  <h4 className="text-sm font-bold text-slate-900 truncate">{food.name}</h4>
-                  <p className="text-xs text-slate-500 font-medium">Porción: {food.servingSize}</p>
+                  {/* Macros */}
+                  <div className="grid grid-cols-4 gap-1.5 pt-3 mt-3 border-t border-slate-100 text-center text-xs font-mono">
+                    <div className="bg-emerald-50/70 p-1.5 rounded-xl border border-emerald-100">
+                      <span className="text-[10px] text-emerald-800 block font-bold font-sans">Proteína</span>
+                      <span className="font-extrabold text-emerald-950">{food.protein}g</span>
+                    </div>
+                    <div className="bg-sky-50/70 p-1.5 rounded-xl border border-sky-100">
+                      <span className="text-[10px] text-sky-800 block font-bold font-sans">Carbos</span>
+                      <span className="font-extrabold text-sky-950">{food.carbs}g</span>
+                    </div>
+                    <div className="bg-amber-50/70 p-1.5 rounded-xl border border-amber-100">
+                      <span className="text-[10px] text-amber-800 block font-bold font-sans">Grasas</span>
+                      <span className="font-extrabold text-amber-950">{food.fat}g</span>
+                    </div>
+                    <div className="bg-teal-50/70 p-1.5 rounded-xl border border-teal-100">
+                      <span className="text-[10px] text-teal-800 block font-bold font-sans">Fibra</span>
+                      <span className="font-extrabold text-teal-950">{food.fiber}g</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="text-right shrink-0">
-                  <span className="text-sm font-black text-amber-800 font-mono block">{food.calories} kcal</span>
-                  <button
-                    onClick={() => handleDelete(food.id)}
-                    title="Eliminar del banco"
-                    className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors mt-1"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Macros */}
-              <div className="grid grid-cols-4 gap-1.5 pt-3 mt-3 border-t border-slate-100 text-center text-xs font-mono">
-                <div className="bg-emerald-50/70 p-1.5 rounded-xl border border-emerald-100">
-                  <span className="text-[10px] text-emerald-800 block font-bold font-sans">Proteína</span>
-                  <span className="font-extrabold text-emerald-950">{food.protein}g</span>
-                </div>
-                <div className="bg-sky-50/70 p-1.5 rounded-xl border border-sky-100">
-                  <span className="text-[10px] text-sky-800 block font-bold font-sans">Carbos</span>
-                  <span className="font-extrabold text-sky-950">{food.carbs}g</span>
-                </div>
-                <div className="bg-amber-50/70 p-1.5 rounded-xl border border-amber-100">
-                  <span className="text-[10px] text-amber-800 block font-bold font-sans">Grasas</span>
-                  <span className="font-extrabold text-amber-950">{food.fat}g</span>
-                </div>
-                <div className="bg-teal-50/70 p-1.5 rounded-xl border border-teal-100">
-                  <span className="text-[10px] text-teal-800 block font-bold font-sans">Fibra</span>
-                  <span className="font-extrabold text-teal-950">{food.fiber}g</span>
-                </div>
-              </div>
-
-              {/* Lípidos y Micronutrientes si existen */}
-              {food.nutrients && Object.keys(food.nutrients).length > 0 && (
-                <div className="pt-2 mt-2 border-t border-slate-100 flex flex-wrap gap-1">
-                  {Object.entries(food.nutrients).slice(0, 4).map(([key, val]) => (
-                    <span key={key} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
-                      {key.replace('_mg', '').replace('_g', '').replace('_iu', 'UI')}: <strong>{val}</strong>
-                    </span>
-                  ))}
-                  {Object.keys(food.nutrients).length > 4 && (
-                    <span className="text-[9px] text-slate-400 self-center">
-                      +{Object.keys(food.nutrients).length - 4} más
-                    </span>
-                  )}
-                </div>
-              )}
-            </Card>
-          ))}
+                {/* Lípidos y Micronutrientes si existen */}
+                {food.nutrients && Object.keys(food.nutrients).length > 0 && (
+                  <div className="pt-2 mt-2 border-t border-slate-100 flex flex-wrap gap-1">
+                    {Object.entries(food.nutrients).slice(0, 5).map(([key, val]) => (
+                      <span key={key} className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
+                        {key.replace('_mg', 'mg').replace('_g', 'g').replace('_iu', 'UI').replace('_mcg', 'mcg')}: <strong>{val}</strong>
+                      </span>
+                    ))}
+                    {Object.keys(food.nutrients).length > 5 && (
+                      <span className="text-[9px] text-slate-400 self-center">
+                        +{Object.keys(food.nutrients).length - 5} más
+                      </span>
+                    )}
+                  </div>
+                )}
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -256,60 +339,85 @@ export const CanonicalFoodsView: React.FC = () => {
         onSaved={() => {}}
       />
 
-      {/* Modal Manual */}
+      {/* Modal Editor / Lote JSON */}
+      <CanonicalJsonModal
+        isOpen={isJsonModalOpen}
+        onClose={() => setIsJsonModalOpen(false)}
+        canonicalFoods={canonicalFoods}
+      />
+
+      {/* Modal de Creación / Edición Manual */}
       {isManualModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900">Agregar Alimento Canónico</h3>
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {editingFood ? '✏️ Modificar Alimento Canónico' : '➕ Agregar Alimento Canónico'}
+                </h3>
+                <p className="text-xs text-slate-500">Valores de referencia con desglose completo de 24 nutrientes</p>
+              </div>
               <button onClick={() => setIsManualModalOpen(false)} className="text-slate-400 hover:text-slate-700">✕</button>
             </div>
 
-            <form onSubmit={handleSaveManual} className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-2">
+            <form onSubmit={handleSaveManual} className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Nombre del Alimento *</label>
                   <input
                     type="text"
                     required
-                    value={manualName}
-                    onChange={(e) => setManualName(e.target.value)}
-                    placeholder="Ej: Pan Cero Cero"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50"
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    placeholder="Ej: Pan Cero Cero Multigrano"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium"
                   />
                 </div>
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Marca</label>
+                  <label className="font-bold text-slate-700 block mb-1">Marca Comercial</label>
                   <input
                     type="text"
-                    value={manualBrand}
-                    onChange={(e) => setManualBrand(e.target.value)}
+                    value={formBrand}
+                    onChange={(e) => setFormBrand(e.target.value)}
                     placeholder="Ej: Bimbo"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Porción de Referencia</label>
-                <input
-                  type="text"
-                  value={manualServing}
-                  onChange={(e) => setManualServing(e.target.value)}
-                  placeholder="Ej: 2 rebanadas (60g)"
-                  className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Porción Descriptiva</label>
+                  <input
+                    type="text"
+                    value={formServing}
+                    onChange={(e) => setFormServing(e.target.value)}
+                    placeholder="Ej: 2 rebanadas (60g)"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Peso en Gramos (g)</label>
+                  <input
+                    type="number"
+                    value={formServingGrams}
+                    onChange={(e) => setFormServingGrams(e.target.value)}
+                    placeholder="60"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium"
+                  />
+                </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-2">
+              {/* Macros Principales */}
+              <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100">
                 <div>
                   <label className="font-bold text-amber-800 block mb-1">Calorías</label>
                   <input
                     type="number"
-                    value={manualCalories}
-                    onChange={(e) => setManualCalories(e.target.value)}
+                    value={formCalories}
+                    onChange={(e) => setFormCalories(e.target.value)}
                     placeholder="kcal"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50"
+                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
                   />
                 </div>
                 <div>
@@ -317,10 +425,10 @@ export const CanonicalFoodsView: React.FC = () => {
                   <input
                     type="number"
                     step="0.1"
-                    value={manualProtein}
-                    onChange={(e) => setManualProtein(e.target.value)}
+                    value={formProtein}
+                    onChange={(e) => setFormProtein(e.target.value)}
                     placeholder="g"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50"
+                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
                   />
                 </div>
                 <div>
@@ -328,10 +436,10 @@ export const CanonicalFoodsView: React.FC = () => {
                   <input
                     type="number"
                     step="0.1"
-                    value={manualCarbs}
-                    onChange={(e) => setManualCarbs(e.target.value)}
+                    value={formCarbs}
+                    onChange={(e) => setFormCarbs(e.target.value)}
                     placeholder="g"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50"
+                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
                   />
                 </div>
                 <div>
@@ -339,50 +447,102 @@ export const CanonicalFoodsView: React.FC = () => {
                   <input
                     type="number"
                     step="0.1"
-                    value={manualFat}
-                    onChange={(e) => setManualFat(e.target.value)}
+                    value={formFat}
+                    onChange={(e) => setFormFat(e.target.value)}
                     placeholder="g"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50"
+                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
-                <div>
-                  <label className="font-bold text-slate-600 block mb-1">Grasa Sat (g)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={manualSatFat}
-                    onChange={(e) => setManualSatFat(e.target.value)}
-                    placeholder="g"
-                    className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-600 block mb-1">Omega 3 (g)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={manualOmega3}
-                    onChange={(e) => setManualOmega3(e.target.value)}
-                    placeholder="g"
-                    className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-600 block mb-1">Sodio (mg)</label>
-                  <input
-                    type="number"
-                    value={manualSodium}
-                    onChange={(e) => setManualSodium(e.target.value)}
-                    placeholder="mg"
-                    className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50"
-                  />
+              {/* Perfil Lipídico */}
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <span className="font-bold text-slate-800 block text-xs">🫒 Perfil de Lípidos & Grasas:</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Grasas Sat (g)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={nutrients.saturated_fat_g || ''}
+                      onChange={(e) => setNutrients({ ...nutrients, saturated_fat_g: e.target.value })}
+                      placeholder="0.2"
+                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Omega 3 (g)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={nutrients.omega3_g || ''}
+                      onChange={(e) => setNutrients({ ...nutrients, omega3_g: e.target.value })}
+                      placeholder="0"
+                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Colesterol (mg)</label>
+                    <input
+                      type="number"
+                      value={nutrients.cholesterol_mg || ''}
+                      onChange={(e) => setNutrients({ ...nutrients, cholesterol_mg: e.target.value })}
+                      placeholder="0"
+                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3">
+              {/* Minerales & Vitaminas Clave */}
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <span className="font-bold text-slate-800 block text-xs">⚡ Minerales & Vitaminas:</span>
+                <div className="grid grid-cols-4 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Sodio (mg)</label>
+                    <input
+                      type="number"
+                      value={nutrients.sodium_mg || ''}
+                      onChange={(e) => setNutrients({ ...nutrients, sodium_mg: e.target.value })}
+                      placeholder="180"
+                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Potasio (mg)</label>
+                    <input
+                      type="number"
+                      value={nutrients.potassium_mg || ''}
+                      onChange={(e) => setNutrients({ ...nutrients, potassium_mg: e.target.value })}
+                      placeholder="95"
+                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Hierro (mg)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={nutrients.iron_mg || ''}
+                      onChange={(e) => setNutrients({ ...nutrients, iron_mg: e.target.value })}
+                      placeholder="1.5"
+                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Calcio (mg)</label>
+                    <input
+                      type="number"
+                      value={nutrients.calcium_mg || ''}
+                      onChange={(e) => setNutrients({ ...nutrients, calcium_mg: e.target.value })}
+                      placeholder="80"
+                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsManualModalOpen(false)}
@@ -394,7 +554,7 @@ export const CanonicalFoodsView: React.FC = () => {
                   type="submit"
                   className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold"
                 >
-                  Guardar Alimento
+                  {editingFood ? 'Guardar Cambios' : 'Registrar Alimento'}
                 </button>
               </div>
             </form>
