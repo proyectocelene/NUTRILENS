@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { 
   Database, 
@@ -24,30 +24,16 @@ import { CanonicalJsonModal } from './CanonicalJsonModal';
 import { getSmartFoodEmoji } from '../../utils/foodEmoji';
 import { awardXp } from '../../services/gamificationService';
 
+import { CanonicalFoodEditModal } from './CanonicalFoodEditModal';
+
 export const CanonicalFoodsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
-  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingFood, setEditingFood] = useState<CanonicalFood | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  // Formulario manual
-  const [formName, setFormName] = useState('');
-  const [formBrand, setFormBrand] = useState('');
-  const [formServing, setFormServing] = useState('100g');
-  const [formServingGrams, setFormServingGrams] = useState('100');
-  const [formCalories, setFormCalories] = useState('');
-  const [formProtein, setFormProtein] = useState('');
-  const [formCarbs, setFormCarbs] = useState('');
-  const [formFat, setFormFat] = useState('');
-  const [formFiber, setFormFiber] = useState('');
-  const [formCategory, setFormCategory] = useState<any>('other');
-  const [formNotes, setFormNotes] = useState('');
-
-  // 24 Nutrientes en Formulario
-  const [nutrients, setNutrients] = useState<Record<string, string>>({});
 
   const canonicalFoods = useLiveQuery(async () => {
     return await db.canonicalFoods.orderBy('name').toArray();
@@ -62,43 +48,12 @@ export const CanonicalFoodsView: React.FC = () => {
 
   const openCreateModal = () => {
     setEditingFood(null);
-    setFormName('');
-    setFormBrand('');
-    setFormServing('100g');
-    setFormServingGrams('100');
-    setFormCalories('');
-    setFormProtein('');
-    setFormCarbs('');
-    setFormFat('');
-    setFormFiber('');
-    setFormCategory('other');
-    setFormNotes('');
-    setNutrients({});
-    setIsManualModalOpen(true);
+    setIsEditModalOpen(true);
   };
 
   const openEditModal = (food: CanonicalFood) => {
     setEditingFood(food);
-    setFormName(food.name);
-    setFormBrand(food.brand || '');
-    setFormServing(food.servingSize || '100g');
-    setFormServingGrams(String(food.servingGrams || 100));
-    setFormCalories(String(food.calories || 0));
-    setFormProtein(String(food.protein || 0));
-    setFormCarbs(String(food.carbs || 0));
-    setFormFat(String(food.fat || 0));
-    setFormFiber(String(food.fiber || 0));
-    setFormCategory(food.category || 'other');
-    setFormNotes(food.notes || '');
-
-    const nMap: Record<string, string> = {};
-    if (food.nutrients) {
-      for (const [k, v] of Object.entries(food.nutrients)) {
-        if (v !== undefined) nMap[k] = String(v);
-      }
-    }
-    setNutrients(nMap);
-    setIsManualModalOpen(true);
+    setIsEditModalOpen(true);
   };
 
   const handleCopySingleJson = (food: CanonicalFood) => {
@@ -111,42 +66,6 @@ export const CanonicalFoodsView: React.FC = () => {
     if (window.confirm(`¿Seguro que deseas eliminar "${name}" del banco canónico?`)) {
       await dbService.deleteCanonicalFood(id);
     }
-  };
-
-  const handleSaveManual = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName.trim()) return;
-
-    const parsedNutrients: Record<string, number> = {};
-    for (const [k, v] of Object.entries(nutrients)) {
-      const num = parseFloat(v);
-      if (!isNaN(num) && num > 0) {
-        parsedNutrients[k] = num;
-      }
-    }
-
-    const foodData: CanonicalFood = {
-      id: editingFood ? editingFood.id : `canon_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      name: formName.trim(),
-      brand: formBrand.trim() || 'Genérico',
-      servingSize: formServing.trim() || '100g',
-      servingGrams: parseFloat(formServingGrams) || 100,
-      calories: parseFloat(formCalories) || 0,
-      protein: parseFloat(formProtein) || 0,
-      carbs: parseFloat(formCarbs) || 0,
-      fat: parseFloat(formFat) || 0,
-      fiber: parseFloat(formFiber) || 0,
-      category: formCategory,
-      notes: formNotes.trim() || undefined,
-      sourceType: editingFood ? editingFood.sourceType : 'manual',
-      nutrients: parsedNutrients,
-      createdAt: editingFood ? editingFood.createdAt : Date.now(),
-      updatedAt: Date.now()
-    };
-
-    await dbService.saveCanonicalFood(foodData);
-    if (!editingFood) awardXp(25, 'Alimento Canónico Registrado');
-    setIsManualModalOpen(false);
   };
 
   return (
@@ -346,221 +265,12 @@ export const CanonicalFoodsView: React.FC = () => {
         canonicalFoods={canonicalFoods}
       />
 
-      {/* Modal de Creación / Edición Manual */}
-      {isManualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  {editingFood ? '✏️ Modificar Alimento Canónico' : '➕ Agregar Alimento Canónico'}
-                </h3>
-                <p className="text-xs text-slate-500">Valores de referencia con desglose completo de 24 nutrientes</p>
-              </div>
-              <button onClick={() => setIsManualModalOpen(false)} className="text-slate-400 hover:text-slate-700">✕</button>
-            </div>
-
-            <form onSubmit={handleSaveManual} className="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Nombre del Alimento *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formName}
-                    onChange={(e) => setFormName(e.target.value)}
-                    placeholder="Ej: Pan Cero Cero Multigrano"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Marca Comercial</label>
-                  <input
-                    type="text"
-                    value={formBrand}
-                    onChange={(e) => setFormBrand(e.target.value)}
-                    placeholder="Ej: Bimbo"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Porción Descriptiva</label>
-                  <input
-                    type="text"
-                    value={formServing}
-                    onChange={(e) => setFormServing(e.target.value)}
-                    placeholder="Ej: 2 rebanadas (60g)"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Peso en Gramos (g)</label>
-                  <input
-                    type="number"
-                    value={formServingGrams}
-                    onChange={(e) => setFormServingGrams(e.target.value)}
-                    placeholder="60"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-medium"
-                  />
-                </div>
-              </div>
-
-              {/* Macros Principales */}
-              <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-100">
-                <div>
-                  <label className="font-bold text-amber-800 block mb-1">Calorías</label>
-                  <input
-                    type="number"
-                    value={formCalories}
-                    onChange={(e) => setFormCalories(e.target.value)}
-                    placeholder="kcal"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-emerald-800 block mb-1">Proteína (g)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={formProtein}
-                    onChange={(e) => setFormProtein(e.target.value)}
-                    placeholder="g"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-sky-800 block mb-1">Carbos (g)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={formCarbs}
-                    onChange={(e) => setFormCarbs(e.target.value)}
-                    placeholder="g"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-amber-800 block mb-1">Grasa (g)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={formFat}
-                    onChange={(e) => setFormFat(e.target.value)}
-                    placeholder="g"
-                    className="w-full p-2 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold"
-                  />
-                </div>
-              </div>
-
-              {/* Perfil Lipídico */}
-              <div className="pt-2 border-t border-slate-100 space-y-2">
-                <span className="font-bold text-slate-800 block text-xs">🫒 Perfil de Lípidos & Grasas:</span>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Grasas Sat (g)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={nutrients.saturated_fat_g || ''}
-                      onChange={(e) => setNutrients({ ...nutrients, saturated_fat_g: e.target.value })}
-                      placeholder="0.2"
-                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Omega 3 (g)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={nutrients.omega3_g || ''}
-                      onChange={(e) => setNutrients({ ...nutrients, omega3_g: e.target.value })}
-                      placeholder="0"
-                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Colesterol (mg)</label>
-                    <input
-                      type="number"
-                      value={nutrients.cholesterol_mg || ''}
-                      onChange={(e) => setNutrients({ ...nutrients, cholesterol_mg: e.target.value })}
-                      placeholder="0"
-                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Minerales & Vitaminas Clave */}
-              <div className="pt-2 border-t border-slate-100 space-y-2">
-                <span className="font-bold text-slate-800 block text-xs">⚡ Minerales & Vitaminas:</span>
-                <div className="grid grid-cols-4 gap-2">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Sodio (mg)</label>
-                    <input
-                      type="number"
-                      value={nutrients.sodium_mg || ''}
-                      onChange={(e) => setNutrients({ ...nutrients, sodium_mg: e.target.value })}
-                      placeholder="180"
-                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Potasio (mg)</label>
-                    <input
-                      type="number"
-                      value={nutrients.potassium_mg || ''}
-                      onChange={(e) => setNutrients({ ...nutrients, potassium_mg: e.target.value })}
-                      placeholder="95"
-                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Hierro (mg)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={nutrients.iron_mg || ''}
-                      onChange={(e) => setNutrients({ ...nutrients, iron_mg: e.target.value })}
-                      placeholder="1.5"
-                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Calcio (mg)</label>
-                    <input
-                      type="number"
-                      value={nutrients.calcium_mg || ''}
-                      onChange={(e) => setNutrients({ ...nutrients, calcium_mg: e.target.value })}
-                      placeholder="80"
-                      className="w-full p-1.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsManualModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold"
-                >
-                  {editingFood ? 'Guardar Cambios' : 'Registrar Alimento'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Modal de Creación / Edición Completa con 24 Nutrientes & Editor JSON */}
+      <CanonicalFoodEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        food={editingFood}
+      />
     </div>
   );
 };
