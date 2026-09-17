@@ -66,11 +66,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ goals, onRefreshDate }
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 truncate">Plan de Recomposición</h3>
-                <Badge variant="emerald" size="sm">Fase 1: Base</Badge>
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 truncate">Plan de Recomposición • Protocolo Adonis</h3>
+                <Badge variant="emerald" size="sm">Fase 1: Base & Definición</Badge>
               </div>
               <p className="text-[11px] sm:text-xs text-slate-600 truncate">
-                1.74 m • 26 años • BMR: 1,702 kcal • Déficit ~500 kcal
+                1.74 m • 26 años • BMR: 1,698 kcal • Déficit ~700 kcal
               </p>
             </div>
           </div>
@@ -80,21 +80,21 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ goals, onRefreshDate }
             <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs min-w-0">
               <span className="text-[10px] text-slate-500 block font-medium truncate">Peso Actual / Meta</span>
               <span className="text-[11px] sm:text-xs font-bold text-slate-900 font-mono block truncate">
-                {profile?.currentWeightKg || 78.35}kg <span className="text-emerald-700">→ {profile?.targetWeightKg || 71.0}kg</span>
+                {profile?.currentWeightKg || 78.05}kg <span className="text-emerald-700">→ {profile?.targetWeightKg || 67.0}kg</span>
               </span>
             </div>
 
             <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs min-w-0">
               <span className="text-[10px] text-slate-500 block font-medium truncate">% Grasa / Visceral</span>
               <span className="text-[11px] sm:text-xs font-bold text-amber-800 font-mono block truncate">
-                {profile?.bodyFatPct || 24.4}% <span className="text-slate-500 font-normal">| Niv {profile?.visceralFatLevel || 11.5}</span>
+                {profile?.bodyFatPct || 24.3}% <span className="text-slate-500 font-normal">| Niv {profile?.visceralFatLevel || 11.0}</span>
               </span>
             </div>
 
             <div className="p-2 sm:p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs min-w-0">
               <span className="text-[10px] text-slate-500 block font-medium truncate">Cintura Ombligo</span>
               <span className="text-[11px] sm:text-xs font-bold text-slate-900 font-mono block truncate">
-                {profile?.currentWaistInches || 38.5}" <span className="text-emerald-700">→ {profile?.targetWaistInches || 32.0}"</span>
+                {profile?.currentWaistInches || 38.5}" <span className="text-emerald-700">→ {profile?.targetWaistInches || 31.5}"</span>
               </span>
             </div>
 
@@ -117,11 +117,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ goals, onRefreshDate }
             icon={loadedMenuSuccess ? <Check size={15} /> : <Sparkles size={15} />}
             className="w-full sm:w-auto shadow-sm text-xs py-2 px-3"
           >
-            {loadedMenuSuccess ? '¡3 Comidas Cargadas!' : 'Cargar Menú 3 Comidas (2,200 kcal)'}
+            {loadedMenuSuccess ? '¡3 Comidas Cargadas!' : 'Cargar Menú 3 Comidas (1,950 kcal)'}
           </Button>
 
           <span className="text-[10px] text-slate-500 text-center lg:text-right">
-            175g P • 245g C • 58g F
+            170g P • 205g C • 52g F
           </span>
         </div>
       </div>

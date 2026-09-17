@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { FileCode, Copy, Check, Sparkles, AlertCircle, Save, Bot, RefreshCw } from 'lucide-react';
 import { NutritionGoals } from '../../types/nutrition.types';
 import { Card } from '../common/Card';
@@ -29,31 +29,31 @@ export const GoalsJsonEditorCard: React.FC<GoalsJsonEditorCardProps> = ({ goals,
 Calcula mis metas calóricas, de macronutrientes, hidratación y micronutrientes basadas en mis datos actuales y devuélveme ÚNICAMENTE un bloque JSON válido con este formato exacto:
 
 {
-  "calories": 2200,
-  "protein": 175,
-  "carbs": 245,
-  "fat": 58,
+  "calories": 1950,
+  "protein": 170,
+  "carbs": 205,
+  "fat": 52,
   "fiber": 35,
   "waterLiters": 3.5,
-  "weightKg": 78.35,
+  "weightKg": 78.05,
   "activityLevel": "active",
   "dietaryGoal": "recomposition",
   "profile": {
     "age": 26,
     "heightCm": 174,
-    "currentWeightKg": 78.35,
-    "targetWeightKg": 71.0,
-    "bmrKcal": 1702,
-    "bodyFatPct": 24.4,
-    "visceralFatLevel": 11.5,
+    "currentWeightKg": 78.05,
+    "targetWeightKg": 67.0,
+    "bmrKcal": 1698,
+    "bodyFatPct": 24.3,
+    "visceralFatLevel": 11.0,
     "currentWaistInches": 38.5,
-    "targetWaistInches": 32.0,
+    "targetWaistInches": 31.5,
     "targetWaterLiters": 3.5,
     "creatineDailyGrams": 5
   },
   "microGoals": {
     "vitamin_a_mcg": 900,
-    "vitamin_c_mg": 300,
+    "vitamin_c_mg": 400,
     "vitamin_d_iu": 3000,
     "vitamin_e_mg": 15,
     "vitamin_b6_mg": 2.5,

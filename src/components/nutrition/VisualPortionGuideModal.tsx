@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Utensils, Hand, Eye, CheckCircle2, Flame, Award, Heart, Sparkles } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Badge } from '../common/Badge';
@@ -68,24 +68,24 @@ export const VisualPortionGuideModal: React.FC<VisualPortionGuideModalProps> = (
         {/* Estructura Ideal de las 3 Comidas Principales */}
         <div className="space-y-3">
           <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-            Distribución Visual Recomendada en tu Plan de 2,200 kcal:
+            Distribución Visual Recomendada en tu Plan de 1,950 kcal (Protocolo Adonis):
           </h4>
 
           {/* 1. Desayuno */}
           <div className="p-3.5 rounded-2xl bg-white border border-amber-200 shadow-xs space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-lg">🍳</span>
-                <h5 className="text-xs font-bold text-slate-900">Desayuno Post-Entreno (~770 kcal)</h5>
+                <span className="text-lg">🥤</span>
+                <h5 className="text-xs font-bold text-slate-900">Desayuno Anabólico Rápido (~385 kcal)</h5>
               </div>
-              <Badge variant="amber" size="sm">52g P • 81g C • 29g F</Badge>
+              <Badge variant="amber" size="sm">48g P • 36g C • 5g F</Badge>
             </div>
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              <strong>Plato:</strong> 4 huevos enteros revueltos + 135ml de claras líquidas + 1 tazón de 80g de avena cocida con 1 plátano en rodajas.
+              <strong>Plato:</strong> 1 scoop Bulk Power Whey (Vanilla S'mores) + 350ml Leche Alpura Pro (alta proteína deslactosada) + 1 plátano mediano (100g pulpa).
             </p>
             <div className="flex items-center gap-1 text-[10px] text-amber-900 bg-amber-50 px-2 py-1 rounded-lg border border-amber-100">
               <Sparkles size={11} />
-              <span>Alto en colina, vitamina D, potasio y carbohidratos complejos de recarga de glucógeno.</span>
+              <span>Satura el umbral de leucina (&gt;3.2g) activando mTORC1 sin distensión previa a consulta médica.</span>
             </div>
           </div>
 
@@ -94,16 +94,16 @@ export const VisualPortionGuideModal: React.FC<VisualPortionGuideModalProps> = (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🥗</span>
-                <h5 className="text-xs font-bold text-slate-900">Almuerzo Principal (~810 kcal)</h5>
+                <h5 className="text-xs font-bold text-slate-900">Almuerzo Post-Gym Máxima Densidad (~744 kcal)</h5>
               </div>
-              <Badge variant="emerald" size="sm">63g P • 100g C • 18g F</Badge>
+              <Badge variant="emerald" size="sm">71g P • 89g C • 13g F</Badge>
             </div>
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              <strong>Plato:</strong> 240g de pechuga de pollo a la plancha (tamaño de 1 palma grande y media) + 350g de arroz jazmín cocido (2 puños) + 70g aguacate (medio aguacate) + ensalada verde al gusto.
+              <strong>Plato:</strong> 120g Pechuga de pollo asada en Air Fryer + 1 lata Atún Dolores en agua (100g drenado) + 160g arroz jazmín cocido (1 taza) + 2 rebanadas Pan Bimbo Cero Cero + 35g aguacate (1/4 pza) + ensalada verde al gusto con limón y sal.
             </p>
             <div className="flex items-center gap-1 text-[10px] text-emerald-900 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">
               <Sparkles size={11} />
-              <span>Pico de síntesis proteica (leucina), hierro hemo, magnesio y saciedad prolongada.</span>
+              <span>Pico de síntesis proteica, 12g de fibra, recarga de glucógeno y saciedad prolongada para estudio ENARM.</span>
             </div>
           </div>
 
@@ -111,17 +111,17 @@ export const VisualPortionGuideModal: React.FC<VisualPortionGuideModalProps> = (
           <div className="p-3.5 rounded-2xl bg-white border border-blue-200 shadow-xs space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-lg">🐟</span>
-                <h5 className="text-xs font-bold text-slate-900">Cena Ligera de Recomposición (~620 kcal)</h5>
+                <span className="text-lg">🥣</span>
+                <h5 className="text-xs font-bold text-slate-900">Cena Reparadora SNC & Caseína Lenta (~426 kcal)</h5>
               </div>
-              <Badge variant="blue" size="sm">60g P • 64g C • 11g F</Badge>
+              <Badge variant="blue" size="sm">30g P • 42g C • 16g F</Badge>
             </div>
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              <strong>Plato:</strong> 220g de salmón / pescado blanco o pollo a la plancha + 200g de batatas / papas al horno + ensalada de espinacas baby con 1 cdta de aceite de oliva.
+              <strong>Plato:</strong> 170g Yogur Griego Fage 0% o Chobani Zero + 30g copos de avena + 15g mantequilla de maní natural (1 cda) + 10g almendras picadas + 1 rebanada Pan Bimbo Cero Cero tostada con canela.
             </p>
             <div className="flex items-center gap-1 text-[10px] text-blue-900 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">
               <Sparkles size={11} />
-              <span>Favorece el descanso nocturno, digestión ligera y reparación muscular continua.</span>
+              <span>Caseína micelar sostenida (6-7h), triptófano anti-antojos quetiapina, magnesio y vitamina E dérmica.</span>
             </div>
           </div>
         </div>

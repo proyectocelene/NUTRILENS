@@ -2,28 +2,28 @@ import { NutritionGoals } from '../types/nutrition.types';
 
 export const DEFAULT_NUTRITION_GOALS: NutritionGoals = {
   id: 'user_default_goals',
-  calories: 2200,
-  protein: 175,
-  carbs: 245,
-  fat: 58,
+  calories: 1950,
+  protein: 170,
+  carbs: 205,
+  fat: 52,
   fiber: 35,
   waterLiters: 3.5,
   profile: {
     age: 26,
     heightCm: 174,
-    currentWeightKg: 78.35,
-    targetWeightKg: 71.0,
-    bmrKcal: 1702,
-    bodyFatPct: 24.4,
-    visceralFatLevel: 11.5,
+    currentWeightKg: 78.05,
+    targetWeightKg: 67.0,
+    bmrKcal: 1698,
+    bodyFatPct: 24.3,
+    visceralFatLevel: 11.0,
     currentWaistInches: 38.5,
-    targetWaistInches: 32.0,
+    targetWaistInches: 31.5,
     targetWaterLiters: 3.5,
     creatineDailyGrams: 5
   },
   microGoals: {
     vitamin_a_mcg: 900,
-    vitamin_c_mg: 300,
+    vitamin_c_mg: 400,
     vitamin_d_iu: 3000,
     vitamin_e_mg: 15,
     vitamin_b6_mg: 2.5,
@@ -36,7 +36,7 @@ export const DEFAULT_NUTRITION_GOALS: NutritionGoals = {
     sodium_mg: 3500,
     zinc_mg: 20
   },
-  weightKg: 78.35,
+  weightKg: 78.05,
   activityLevel: 'active',
   dietaryGoal: 'recomposition'
 };
@@ -304,67 +304,60 @@ export const JSON_BLANK_SCHEMA_TEMPLATE = JSON.stringify({
 export const SAMPLE_JSON_TEMPLATES = [
   {
     id: 'sample_meal1_breakfast',
-    title: '🍳 Comida 1: Desayuno Post-Entreno (55g P | 80g C | 18g F)',
-    description: '4 huevos enteros + 4 claras + 80g avena + 1 plátano + aceite spray.',
+    title: '🥤 Comida 1: Desayuno Anabólico Optimizado (48g P | 36g C | 5g F)',
+    description: '1 scoop Bulk Power Whey + 350ml Leche Alpura Pro + 1 plátano mediano (~385 kcal).',
     json: JSON.stringify({
-      name: "Comida 1: Desayuno Post-Entrenamiento Inmediato",
+      name: "Comida 1: Desayuno Anabólico Optimizado",
+      emoji: "🥤",
       mealType: "breakfast",
       date: new Date().toISOString().split('T')[0],
-      time: "08:30",
-      notes: "Tomar junto a 5g de Creatina Monohidratada y 500ml de agua",
+      time: "07:45",
+      notes: "Pico de Leucina (>3.2g) y activación mTORC1 sin pesadez digestiva para iniciar consulta médica.",
+      totalCalories: 385,
+      totalProtein: 47.6,
+      totalCarbs: 36.2,
+      totalFat: 5.3,
+      totalFiber: 2.6,
       foods: [
         {
-          name: "Huevos enteros grandes (4 piezas)",
-          amount: "200g (4 piezas)",
-          calories: 288,
-          protein: 24.8,
-          carbs: 1.6,
-          fat: 20.0,
+          name: "Proteína Whey Bulk Power (Vanilla S'mores)",
+          emoji: "🥛",
+          amount: "1 scoop (30g)",
+          calories: 120,
+          protein: 22.0,
+          carbs: 2.0,
+          fat: 1.5,
           fiber: 0,
           nutrients: {
-            vitamin_d_iu: 164,
-            vitamin_b12_mcg: 1.8,
-            vitamin_a_mcg: 320,
-            iron_mg: 3.5,
-            zinc_mg: 2.2,
-            sodium_mg: 280,
-            potassium_mg: 270
+            calcium_mg: 130,
+            potassium_mg: 150,
+            sodium_mg: 120,
+            iron_mg: 0.5
           }
         },
         {
-          name: "Claras de huevo líquidas pasteurizadas",
-          amount: "135ml (4 claras)",
-          calories: 70,
-          protein: 15.0,
-          carbs: 1.0,
-          fat: 0.2,
+          name: "Leche Alpura Pro / Alta Proteína Deslactosada",
+          emoji: "🥛",
+          amount: "350ml",
+          calories: 175,
+          protein: 24.5,
+          carbs: 11.2,
+          fat: 3.5,
           fiber: 0,
           nutrients: {
-            potassium_mg: 220,
-            sodium_mg: 230,
-            magnesium_mg: 15
-          }
-        },
-        {
-          name: "Copos de Avena Integral en hojuelas",
-          amount: "80g",
-          calories: 304,
-          protein: 10.8,
-          carbs: 53.0,
-          fat: 5.6,
-          fiber: 8.5,
-          nutrients: {
-            magnesium_mg: 110,
-            iron_mg: 3.8,
-            zinc_mg: 3.2,
-            potassium_mg: 290,
-            vitamin_b6_mg: 0.3
+            calcium_mg: 520,
+            potassium_mg: 550,
+            sodium_mg: 175,
+            vitamin_d_iu: 175,
+            vitamin_a_mcg: 260,
+            vitamin_b12_mcg: 1.8
           }
         },
         {
           name: "Plátano maduro",
-          amount: "100g (1 pieza)",
-          calories: 89,
+          emoji: "🍌",
+          amount: "1 pieza mediana (100g pulpa)",
+          calories: 90,
           protein: 1.1,
           carbs: 23.0,
           fat: 0.3,
@@ -375,244 +368,288 @@ export const SAMPLE_JSON_TEMPLATES = [
             vitamin_b6_mg: 0.4,
             magnesium_mg: 27
           }
-        },
-        {
-          name: "Aceite de oliva / spray de cocción",
-          amount: "3g (1 cdta)",
-          calories: 27,
-          protein: 0,
-          carbs: 0,
-          fat: 3.0,
-          nutrients: {
-            vitamin_e_mg: 0.5
-          }
         }
-      ]
+      ],
+      totalNutrients: {
+        calcium_mg: 650,
+        potassium_mg: 1060,
+        sodium_mg: 295,
+        magnesium_mg: 45,
+        vitamin_c_mg: 8.7,
+        vitamin_d_iu: 175,
+        vitamin_a_mcg: 260,
+        vitamin_b12_mcg: 1.8,
+        vitamin_b6_mg: 0.5,
+        iron_mg: 0.8
+      }
     }, null, 2)
   },
   {
     id: 'sample_meal2_lunch',
-    title: '🥗 Comida 2: Almuerzo Principal (60g P | 100g C | 20g F)',
-    description: '240g pechuga pollo/lomo + 350g arroz + ensalada verde + 70g aguacate + AOVE.',
+    title: '🥗 Comida 2: Almuerzo Post-Gym Máxima Densidad (71g P | 89g C | 13g F)',
+    description: '120g pechuga pollo air fryer + 1 lata atún dolores + 160g arroz jazmín + 2 pan bimbo 0/0 + aguacate + ensalada.',
     json: JSON.stringify({
-      name: "Comida 2: Almuerzo Principal de Recomposición",
+      name: "Comida 2: Almuerzo Post-Gym (Máxima Saciedad & Recarga)",
+      emoji: "🥗",
       mealType: "lunch",
       date: new Date().toISOString().split('T')[0],
-      time: "14:00",
-      notes: "Carga sostenida de energía y micronutrientes",
+      time: "15:30",
+      notes: "Sensibilidad insulínica post-pesas y recarga de glucógeno para estudio ENARM. Densidad y saciedad máxima.",
+      totalCalories: 744,
+      totalProtein: 70.8,
+      totalCarbs: 89.2,
+      totalFat: 12.8,
+      totalFiber: 14.7,
       foods: [
         {
-          name: "Pechuga de Pollo o Lomo Magro (en crudo)",
-          amount: "240g",
-          calories: 396,
-          protein: 74.0,
+          name: "Pechuga de Pollo asada en Air Fryer",
+          emoji: "🍗",
+          amount: "120g (peso cocido)",
+          calories: 198,
+          protein: 37.2,
           carbs: 0,
-          fat: 8.6,
+          fat: 4.2,
           fiber: 0,
           nutrients: {
-            iron_mg: 2.5,
-            zinc_mg: 2.4,
-            potassium_mg: 615,
-            vitamin_b6_mg: 1.4,
-            vitamin_b12_mcg: 0.8,
-            sodium_mg: 170
+            potassium_mg: 400,
+            sodium_mg: 90,
+            iron_mg: 1.2,
+            magnesium_mg: 35,
+            zinc_mg: 1.2,
+            vitamin_b6_mg: 0.7,
+            vitamin_b12_mcg: 0.4
+          }
+        },
+        {
+          name: "Atún Dolores en Agua drenado",
+          emoji: "🐟",
+          amount: "1 lata (100g drenado)",
+          calories: 96,
+          protein: 22.0,
+          carbs: 0,
+          fat: 0.8,
+          fiber: 0,
+          nutrients: {
+            sodium_mg: 260,
+            potassium_mg: 250,
+            selenium_mcg: 65,
+            vitamin_b12_mcg: 2.5,
+            iron_mg: 1.3
           }
         },
         {
           name: "Arroz blanco o jazmín cocido",
-          amount: "350g (cocido)",
-          calories: 455,
-          protein: 9.5,
-          carbs: 98.0,
-          fat: 1.2,
-          fiber: 1.8,
+          emoji: "🍚",
+          amount: "160g cocido (~1 taza)",
+          calories: 208,
+          protein: 4.0,
+          carbs: 45.0,
+          fat: 0.4,
+          fiber: 0.8,
           nutrients: {
-            iron_mg: 1.5,
-            magnesium_mg: 42,
-            potassium_mg: 120,
-            zinc_mg: 1.8
+            iron_mg: 1.2,
+            magnesium_mg: 20,
+            zinc_mg: 0.8,
+            potassium_mg: 55
           }
         },
         {
-          name: "Ensalada verde mixta (espinacas, pepino, tomate)",
-          amount: "200g (1 plato hondo)",
-          calories: 42,
-          protein: 3.2,
-          carbs: 6.8,
-          fat: 0.5,
-          fiber: 3.6,
-          nutrients: {
-            vitamin_a_mcg: 650,
-            vitamin_c_mg: 45,
-            vitamin_k_mcg: 320,
-            folate_mcg: 140,
-            potassium_mg: 480,
-            magnesium_mg: 55,
-            calcium_mg: 75
-          }
-        },
-        {
-          name: "Aguacate Hass (1/3 pieza)",
-          amount: "70g",
+          name: "Pan Bimbo Cero Cero Multigrano",
+          emoji: "🍞",
+          amount: "2 rebanadas (60g)",
           calories: 112,
-          protein: 1.4,
-          carbs: 6.0,
-          fat: 10.5,
-          fiber: 4.8,
+          protein: 6.8,
+          carbs: 21.0,
+          fat: 1.4,
+          fiber: 7.0,
           nutrients: {
-            potassium_mg: 340,
-            vitamin_e_mg: 1.4,
-            folate_mcg: 56,
-            magnesium_mg: 20
+            sodium_mg: 180,
+            iron_mg: 1.5,
+            magnesium_mg: 30,
+            potassium_mg: 95
           }
         },
         {
-          name: "Aceite de Oliva Virgen Extra",
-          amount: "5ml (1 cdta)",
-          calories: 44,
-          protein: 0,
-          carbs: 0,
-          fat: 5.0,
+          name: "Aguacate Hass",
+          emoji: "🥑",
+          amount: "35g (1/4 pieza)",
+          calories: 65,
+          protein: 0.8,
+          carbs: 3.2,
+          fat: 6.0,
+          fiber: 2.4,
           nutrients: {
-            vitamin_e_mg: 0.8
+            potassium_mg: 170,
+            vitamin_e_mg: 0.7,
+            folate_mcg: 28,
+            magnesium_mg: 10
+          }
+        },
+        {
+          name: "Ensalada verde mixta con limón y sal",
+          emoji: "🥗",
+          amount: "200g (pepino, tomate bola, espinacas)",
+          calories: 65,
+          protein: 3.0,
+          carbs: 9.0,
+          fat: 0.5,
+          fiber: 4.5,
+          nutrients: {
+            vitamin_a_mcg: 600,
+            vitamin_c_mg: 40,
+            vitamin_k_mcg: 280,
+            folate_mcg: 110,
+            potassium_mg: 450,
+            sodium_mg: 250
           }
         }
-      ]
+      ],
+      totalNutrients: {
+        potassium_mg: 1415,
+        sodium_mg: 870,
+        iron_mg: 5.2,
+        magnesium_mg: 110,
+        zinc_mg: 3.2,
+        vitamin_a_mcg: 600,
+        vitamin_c_mg: 40,
+        vitamin_k_mcg: 280,
+        folate_mcg: 138,
+        vitamin_b12_mcg: 2.9,
+        vitamin_b6_mg: 1.2,
+        selenium_mcg: 75
+      }
     }, null, 2)
   },
   {
     id: 'sample_meal3_dinner',
-    title: '🥩 Comida 3: Cena Regenerativa (60g P | 65g C | 20g F)',
-    description: '250g bistec res magro/atún + 4 tortillas maíz + brócoli + 70g aguacate.',
+    title: '🌙 Comida 3: Cena Reparadora SNC & Caseína Lenta (30g P | 42g C | 16g F)',
+    description: '170g yogur griego Fage 0% + 30g avena + 15g crema maní + 10g almendras + 1 pan bimbo tostado.',
     json: JSON.stringify({
-      name: "Comida 3: Cena Regenerativa",
+      name: "Comida 3: Cena Reparadora del SNC & Tejido Conectivo",
+      emoji: "🥣",
       mealType: "dinner",
       date: new Date().toISOString().split('T')[0],
-      time: "20:30",
-      notes: "Síntesis tisular durante el sueño",
+      time: "21:15",
+      notes: "Caseína micelar de lenta liberación (6-7h), triptófano anti-antojos quetiapina. Acompañar con 5g creatina, 400mg citrato magnesio y 400mg vit C.",
+      totalCalories: 426,
+      totalProtein: 30.3,
+      totalCarbs: 41.7,
+      totalFat: 15.9,
+      totalFiber: 9.1,
       foods: [
         {
-          name: "Bistec Magro de Res / Atún / Pavo",
-          amount: "250g",
-          calories: 360,
-          protein: 65.0,
-          carbs: 0,
-          fat: 9.0,
+          name: "Yogur Griego Fage 0% o Chobani Zero",
+          emoji: "🥣",
+          amount: "170g",
+          calories: 100,
+          protein: 17.0,
+          carbs: 6.0,
+          fat: 0,
           fiber: 0,
           nutrients: {
-            iron_mg: 6.2,
-            zinc_mg: 11.5,
-            vitamin_b12_mcg: 5.5,
-            potassium_mg: 780,
-            selenium_mcg: 65,
-            sodium_mg: 160
-          }
-        },
-        {
-          name: "Tortillas de maíz estándar",
-          amount: "4 piezas (120g)",
-          calories: 260,
-          protein: 6.0,
-          carbs: 52.0,
-          fat: 3.2,
-          fiber: 6.0,
-          nutrients: {
-            calcium_mg: 180,
-            magnesium_mg: 70,
+            calcium_mg: 190,
             potassium_mg: 240,
-            iron_mg: 1.8
+            sodium_mg: 65,
+            vitamin_b12_mcg: 0.9
           }
         },
         {
-          name: "Brócoli o Espárragos al vapor",
-          amount: "180g",
-          calories: 62,
-          protein: 5.0,
-          carbs: 12.0,
+          name: "Copos de Avena Integral en hojuelas",
+          emoji: "🌾",
+          amount: "30g",
+          calories: 115,
+          protein: 4.0,
+          carbs: 20.0,
+          fat: 2.0,
+          fiber: 3.2,
+          nutrients: {
+            magnesium_mg: 42,
+            zinc_mg: 1.2,
+            iron_mg: 1.4,
+            potassium_mg: 110
+          }
+        },
+        {
+          name: "Mantequilla de Maní pura",
+          emoji: "🥜",
+          amount: "15g (1 cda sopera rasa)",
+          calories: 95,
+          protein: 3.8,
+          carbs: 3.2,
+          fat: 8.0,
+          fiber: 1.2,
+          nutrients: {
+            vitamin_e_mg: 1.3,
+            magnesium_mg: 25,
+            potassium_mg: 105
+          }
+        },
+        {
+          name: "Almendras picadas",
+          emoji: "🌰",
+          amount: "10g (8-10 piezas)",
+          calories: 60,
+          protein: 2.1,
+          carbs: 2.0,
+          fat: 5.2,
+          fiber: 1.2,
+          nutrients: {
+            vitamin_e_mg: 2.6,
+            magnesium_mg: 27,
+            calcium_mg: 26,
+            potassium_mg: 73
+          }
+        },
+        {
+          name: "Pan Bimbo Cero Cero tostado",
+          emoji: "🍞",
+          amount: "1 rebanada (30g)",
+          calories: 56,
+          protein: 3.4,
+          carbs: 10.5,
           fat: 0.7,
-          fiber: 5.2,
+          fiber: 3.5,
           nutrients: {
-            vitamin_c_mg: 160,
-            vitamin_k_mcg: 180,
-            calcium_mg: 85,
-            folate_mcg: 115,
-            potassium_mg: 540
-          }
-        },
-        {
-          name: "Aguacate Hass o 15g Almendras",
-          amount: "70g",
-          calories: 112,
-          protein: 1.4,
-          carbs: 6.0,
-          fat: 10.5,
-          fiber: 4.8,
-          nutrients: {
-            potassium_mg: 340,
-            magnesium_mg: 20,
-            vitamin_e_mg: 1.4
+            sodium_mg: 90,
+            iron_mg: 0.8,
+            potassium_mg: 50
           }
         }
-      ]
+      ],
+      totalNutrients: {
+        calcium_mg: 230,
+        potassium_mg: 578,
+        magnesium_mg: 105,
+        zinc_mg: 1.9,
+        iron_mg: 2.3,
+        vitamin_e_mg: 4.0,
+        vitamin_b12_mcg: 0.9,
+        sodium_mg: 165
+      }
     }, null, 2)
   }
 ];
 
 export const DEFAULT_CANONICAL_FOODS: any[] = [
   {
-    id: 'canon_pan_bimbo_00',
-    name: 'Pan Bimbo Cero Cero Multigrano',
-    brand: 'Bimbo',
-    servingSize: '2 rebanadas (~60g)',
-    servingGrams: 60,
-    calories: 140,
-    protein: 7.0,
-    carbs: 23.0,
+    id: 'canon_whey_bulk_power',
+    name: "Proteína Whey Bulk Power (Vanilla S'mores)",
+    brand: 'Bulk Power',
+    servingSize: '1 scoop (30g)',
+    servingGrams: 30,
+    calories: 120,
+    protein: 22.0,
+    carbs: 2.0,
     fat: 1.5,
-    fiber: 3.5,
-    category: 'grains',
-    sourceType: 'manual',
-    notes: '0% azúcares añadidos, 0% grasas añadidas',
-    nutrients: {
-      sodium_mg: 180,
-      iron_mg: 1.2,
-      magnesium_mg: 25,
-      potassium_mg: 110,
-      calcium_mg: 60,
-      zinc_mg: 0.8,
-      saturated_fat_g: 0.2,
-      monounsaturated_fat_g: 0.4,
-      polyunsaturated_fat_g: 0.7,
-      sugar_g: 1.2
-    },
-    createdAt: Date.now(),
-    updatedAt: Date.now()
-  },
-  {
-    id: 'canon_huevo_entero',
-    name: 'Huevo entero fresco grande',
-    brand: 'San Juan / Bachoco',
-    servingSize: '2 piezas (~100g)',
-    servingGrams: 100,
-    calories: 144,
-    protein: 12.6,
-    carbs: 0.8,
-    fat: 9.6,
     fiber: 0,
-    category: 'protein',
+    category: 'supplements',
     sourceType: 'manual',
-    notes: 'Excelente biodisponibilidad y colina',
+    notes: 'Aislado y concentrado de suero, digestión óptima y leucina',
     nutrients: {
-      cholesterol_mg: 372,
-      choline_mg: 294,
-      saturated_fat_g: 3.1,
-      monounsaturated_fat_g: 3.8,
-      polyunsaturated_fat_g: 1.4,
-      omega3_g: 0.15,
-      vitamin_d_iu: 82,
-      vitamin_b12_mcg: 0.9,
-      iron_mg: 1.8,
-      sodium_mg: 140
+      calcium_mg: 130,
+      potassium_mg: 150,
+      sodium_mg: 120,
+      iron_mg: 0.5
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -630,7 +667,7 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
     fiber: 0,
     category: 'dairy',
     sourceType: 'manual',
-    notes: '70% más proteína que leche regular',
+    notes: '70% más proteína que leche regular, deslactosada',
     nutrients: {
       calcium_mg: 360,
       potassium_mg: 380,
@@ -645,8 +682,32 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
     updatedAt: Date.now()
   },
   {
-    id: 'canon_pechuga_pollo_cocida',
-    name: 'Pechuga de pollo a la plancha/cocida',
+    id: 'canon_atun_dolores',
+    name: 'Atún Dolores en Agua',
+    brand: 'Dolores',
+    servingSize: '1 lata (100g drenado)',
+    servingGrams: 100,
+    calories: 96,
+    protein: 22.0,
+    carbs: 0,
+    fat: 0.8,
+    fiber: 0,
+    category: 'protein',
+    sourceType: 'manual',
+    notes: 'Proteína pura ultra magra, rico en selenio y B12',
+    nutrients: {
+      sodium_mg: 260,
+      potassium_mg: 250,
+      selenium_mcg: 65,
+      vitamin_b12_mcg: 2.5,
+      iron_mg: 1.3
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_pechuga_pollo_airfryer',
+    name: 'Pechuga de pollo asada en Air Fryer',
     brand: 'Genérico',
     servingSize: '100g cocido',
     servingGrams: 100,
@@ -657,7 +718,7 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
     fiber: 0,
     category: 'protein',
     sourceType: 'manual',
-    notes: 'Proteína magra estándar de recomposición',
+    notes: 'Proteína magra estándar de recomposición Adonis',
     nutrients: {
       potassium_mg: 334,
       sodium_mg: 74,
@@ -669,6 +730,175 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       polyunsaturated_fat_g: 0.8,
       cholesterol_mg: 85,
       choline_mg: 85
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_pan_bimbo_00',
+    name: 'Pan Bimbo Cero Cero Multigrano',
+    brand: 'Bimbo',
+    servingSize: '2 rebanadas (~60g)',
+    servingGrams: 60,
+    calories: 112,
+    protein: 6.8,
+    carbs: 21.0,
+    fat: 1.4,
+    fiber: 7.0,
+    category: 'grains',
+    sourceType: 'manual',
+    notes: '0% azúcares añadidos, 0% grasas añadidas, 7g fibra',
+    nutrients: {
+      sodium_mg: 180,
+      iron_mg: 1.5,
+      magnesium_mg: 30,
+      potassium_mg: 95,
+      calcium_mg: 60,
+      zinc_mg: 0.8,
+      saturated_fat_g: 0.2,
+      monounsaturated_fat_g: 0.4,
+      polyunsaturated_fat_g: 0.7,
+      sugar_g: 1.2
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_yogur_fage_0',
+    name: 'Yogur Griego Fage Total 0% / Chobani Zero',
+    brand: 'Fage / Chobani',
+    servingSize: '1 taza (170g)',
+    servingGrams: 170,
+    calories: 100,
+    protein: 17.0,
+    carbs: 6.0,
+    fat: 0,
+    fiber: 0,
+    category: 'dairy',
+    sourceType: 'manual',
+    notes: 'Caseína micelar de lenta absorción para saciedad nocturna',
+    nutrients: {
+      calcium_mg: 190,
+      potassium_mg: 240,
+      sodium_mg: 65,
+      vitamin_b12_mcg: 0.9
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_mantequilla_mani',
+    name: 'Mantequilla de Maní Natural (100% Cacahuate)',
+    brand: 'Genérico / Kirkland',
+    servingSize: '1 cda sopera rasa (15g)',
+    servingGrams: 15,
+    calories: 95,
+    protein: 3.8,
+    carbs: 3.2,
+    fat: 8.0,
+    fiber: 1.2,
+    category: 'fats',
+    sourceType: 'manual',
+    notes: 'Grasas monoinsaturadas y triptófano nocturno',
+    nutrients: {
+      vitamin_e_mg: 1.3,
+      magnesium_mg: 25,
+      potassium_mg: 105,
+      saturated_fat_g: 1.5,
+      monounsaturated_fat_g: 4.0,
+      polyunsaturated_fat_g: 2.0
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_almendras',
+    name: 'Almendras enteras naturales',
+    brand: 'Genérico',
+    servingSize: '10g (8-10 piezas)',
+    servingGrams: 10,
+    calories: 60,
+    protein: 2.1,
+    carbs: 2.0,
+    fat: 5.2,
+    fiber: 1.2,
+    category: 'fats',
+    sourceType: 'manual',
+    notes: 'Ricas en vitamina E dérmica y magnesio',
+    nutrients: {
+      vitamin_e_mg: 2.6,
+      magnesium_mg: 27,
+      calcium_mg: 26,
+      potassium_mg: 73
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_arroz_cocido',
+    name: 'Arroz blanco o jazmín cocido',
+    brand: 'Genérico',
+    servingSize: '160g cocido (~1 taza)',
+    servingGrams: 160,
+    calories: 208,
+    protein: 4.0,
+    carbs: 45.0,
+    fat: 0.4,
+    fiber: 0.8,
+    category: 'grains',
+    sourceType: 'manual',
+    notes: 'Carbohidrato de rápida recarga de glucógeno post-pesas',
+    nutrients: {
+      iron_mg: 1.2,
+      magnesium_mg: 20,
+      zinc_mg: 0.8,
+      potassium_mg: 55
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_aguacate_hass',
+    name: 'Aguacate Hass fresco',
+    brand: 'Genérico',
+    servingSize: '35g (1/4 pieza)',
+    servingGrams: 35,
+    calories: 65,
+    protein: 0.8,
+    carbs: 3.2,
+    fat: 6.0,
+    fiber: 2.4,
+    category: 'fats',
+    sourceType: 'manual',
+    notes: 'Ácido oleico, potasio y fibra soluble',
+    nutrients: {
+      potassium_mg: 170,
+      vitamin_e_mg: 0.7,
+      folate_mcg: 28,
+      magnesium_mg: 10
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_avena_integral',
+    name: 'Copos de Avena Integral en hojuelas',
+    brand: 'Quaker / Genérico',
+    servingSize: '30g',
+    servingGrams: 30,
+    calories: 115,
+    protein: 4.0,
+    carbs: 20.0,
+    fat: 2.0,
+    fiber: 3.2,
+    category: 'grains',
+    sourceType: 'manual',
+    notes: 'Beta-glucanos, magnesio y saciedad prolongada',
+    nutrients: {
+      magnesium_mg: 42,
+      zinc_mg: 1.2,
+      iron_mg: 1.4,
+      potassium_mg: 110
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -688,6 +918,46 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
     sourceType: 'manual',
     notes: '5g diarios para saturación muscular e hidratación celular',
     nutrients: {},
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_citrato_magnesio',
+    name: 'Citrato de Magnesio (400mg elemental)',
+    brand: 'Genérico',
+    servingSize: '1 dosis nocturna',
+    servingGrams: 2,
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    fiber: 0,
+    category: 'supplements',
+    sourceType: 'manual',
+    notes: 'Relajación muscular, sueño profundo NREM 3/4 y anti-calambres',
+    nutrients: {
+      magnesium_mg: 400
+    },
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  },
+  {
+    id: 'canon_vitamina_c',
+    name: 'Vitamina C (Ácido Ascórbico 400-500mg)',
+    brand: 'Genérico',
+    servingSize: '1 dosis nocturna',
+    servingGrams: 1,
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    fiber: 0,
+    category: 'supplements',
+    sourceType: 'manual',
+    notes: 'Cofactor de hidroxilación de procolágeno anti-flacidez',
+    nutrients: {
+      vitamin_c_mg: 400
+    },
     createdAt: Date.now(),
     updatedAt: Date.now()
   }

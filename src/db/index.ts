@@ -35,7 +35,7 @@ export const db = new NutriLensDatabase();
 export async function initializeDatabase(): Promise<void> {
   try {
     const existingGoals = await db.goals.get('user_default_goals');
-    if (!existingGoals) {
+    if (!existingGoals || existingGoals.calories === 2200 || existingGoals.profile?.targetWeightKg === 71.0) {
       await db.goals.put(DEFAULT_NUTRITION_GOALS);
     } else {
       await db.goals.put({
@@ -46,7 +46,10 @@ export async function initializeDatabase(): Promise<void> {
         carbs: existingGoals.carbs || DEFAULT_NUTRITION_GOALS.carbs,
         fat: existingGoals.fat || DEFAULT_NUTRITION_GOALS.fat,
         waterLiters: DEFAULT_NUTRITION_GOALS.waterLiters,
-        profile: DEFAULT_NUTRITION_GOALS.profile,
+        profile: {
+          ...DEFAULT_NUTRITION_GOALS.profile!,
+          ...(existingGoals.profile || {})
+        },
         microGoals: {
           ...DEFAULT_NUTRITION_GOALS.microGoals,
           ...(existingGoals.microGoals || {})
@@ -54,10 +57,12 @@ export async function initializeDatabase(): Promise<void> {
       });
     }
 
-    // Inicializar alimentos canónicos si está vacío
-    const count = await db.canonicalFoods.count();
-    if (count === 0 && DEFAULT_CANONICAL_FOODS.length > 0) {
-      await db.canonicalFoods.bulkPut(DEFAULT_CANONICAL_FOODS);
+    // Inicializar o enriquecer alimentos canónicos
+    for (const food of DEFAULT_CANONICAL_FOODS) {
+      const existing = await db.canonicalFoods.get(food.id);
+      if (!existing) {
+        await db.canonicalFoods.put(food);
+      }
     }
   } catch (error) {
     console.error('Error initializing database:', error);

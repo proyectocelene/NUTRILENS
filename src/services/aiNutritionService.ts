@@ -113,20 +113,23 @@ REGLAS FUNDAMENTALES DE EXACTITUD Y VERACIDAD NUTRICIONAL:
    - Minerales: iron_mg, magnesium_mg, potassium_mg, calcium_mg, zinc_mg, sodium_mg, phosphorus_mg, selenium_mcg.
    - Vitaminas: vitamin_c_mg, vitamin_d_iu, vitamin_a_mcg, vitamin_b12_mcg, vitamin_b6_mg, folate_mcg, vitamin_e_mg, vitamin_k_mcg.
 
-2. TABLA CANÓNICA BASE DE PRODUCTOS HABITUALES:
-   * Pan Bimbo Cero Cero Multigrano (2 rebanadas / 60g): 140 kcal | 7g Proteína | 23g Carbos | 1.5g Grasa (0.2g Sat, 0.4g Mono, 0.7g Poli) | 3.5g Fibra | 180mg Sodio.
+2. TABLA CANÓNICA BASE DE PRODUCTOS HABITUALES (MÁXIMA PRIORIDAD):
+   * Proteína Whey Bulk Power Vanilla S'mores (1 scoop / 30g): 120 kcal | 22g Proteína | 2g Carbos | 1.5g Grasa | 130mg Calcio | 150mg Potasio | 120mg Sodio.
+   * Leche Alpura Proteína / Pro Deslactosada (1 vaso / 240ml): 110 kcal | 12g Proteína | 8.6g Carbos | 1.8g Grasa (1.1g Sat) | 8mg Colesterol | 360mg Calcio | 120 UI Vit D | 380mg Potasio | 120mg Sodio. (Para 350ml: 175 kcal | 24.5g P | 11.2g C | 3.5g F).
+   * Atún Dolores en Agua drenado (1 lata / 100g drenado): 96 kcal | 22g Proteína | 0g Carbos | 0.8g Grasa | 260mg Sodio | 250mg Potasio | 65mcg Selenio | 2.5mcg B12.
+   * Pechuga de pollo asada en Air Fryer (100g cocido): 165 kcal | 31g Proteína | 0g Carbos | 3.6g Grasa (1.0g Sat, 1.2g Mono, 0.8g Poli) | 85mg Colesterol | 85mg Colina | 334mg Potasio. (Para 120g: 198 kcal | 37.2g P | 0g C | 4.2g F).
+   * Pan Bimbo Cero Cero Multigrano (2 rebanadas / 60g): 112 kcal | 6.8g Proteína | 21g Carbos | 1.4g Grasa (0.2g Sat) | 7g Fibra | 180mg Sodio | 95mg Potasio. (1 rebanada / 30g: 56 kcal | 3.4g P | 10.5g C | 0.7g F | 3.5g Fibra).
+   * Yogur Griego Fage Total 0% o Chobani Zero (1 taza / 170g): 100 kcal | 17g Proteína | 6g Carbos | 0g Grasa | 190mg Calcio | 240mg Potasio | 65mg Sodio | 0.9mcg B12.
+   * Mantequilla de Maní Natural (1 cda sopera rasa / 15g): 95 kcal | 3.8g Proteína | 3.2g Carbos | 8g Grasa (1.5g Sat, 4g Mono, 2g Poli) | 1.2g Fibra | 25mg Magnesio | 1.3mg Vit E.
+   * Almendras enteras o picadas (10g / ~8-10 pzas): 60 kcal | 2.1g Proteína | 2g Carbos | 5.2g Grasa | 1.2g Fibra | 27mg Magnesio | 2.6mg Vit E.
+   * Arroz blanco o jazmín cocido (100g): 130 kcal | 2.7g Proteína | 28.2g Carbos | 0.3g Grasa | 0.8g Fibra. (Para 160g: 208 kcal | 4g P | 45g C | 0.4g F).
+   * Aguacate Hass (35g / 1/4 pieza): 65 kcal | 0.8g Proteína | 3.2g Carbos | 6g Grasa (0.8g Sat, 4g Mono) | 2.4g Fibra | 170mg Potasio.
+   * Copos de Avena Integral (30g): 115 kcal | 4g Proteína | 20g Carbos | 2g Grasa | 3.2g Fibra | 42mg Magnesio.
    * Huevo entero fresco (2 piezas / ~100g): 144 kcal | 12.6g Proteína | 0.8g Carbos | 9.6g Grasa (3.1g Sat, 3.8g Mono, 1.4g Poli, 0.3g Omega3) | 372mg Colesterol | 294mg Colina | 82 UI Vit D | 1.8mg Hierro | 140mg Sodio.
    * Clara de huevo pasteurizada (50g / ~1.5 claras): 26 kcal | 5.5g Proteína | 0.4g Carbos | 0.1g Grasa | 0mg Colesterol | 83mg Sodio.
-   * Jamón de pavo pechuga (2 rebanadas / 40g): 42 kcal | 7g Proteína | 1g Carbos | 1g Grasa (0.3g Sat) | 25mg Colesterol | 380mg Sodio.
-   * Queso Panela bajo en grasa (1 rebanada / 30g): 51 kcal | 5.4g Proteína | 1.2g Carbos | 2.7g Grasa (1.6g Sat) | 15mg Colesterol | 165mg Calcio | 150mg Sodio.
-   * Leche Alpura Proteína / Pro (1 vaso / 240ml): 110 kcal | 12g Proteína | 8.6g Carbos | 1.8g Grasa (1.1g Sat) | 8mg Colesterol | 360mg Calcio | 120 UI Vit D | 380mg Potasio | 120mg Sodio.
-   * Café negro sin azúcar (1 taza / 240ml): 2 kcal | 0.3g Proteína | 0g Carbos | 0g Grasa | 116mg Potasio.
-   * Aceite vegetal de cocina (1 cdta / 5g): 44 kcal | 0g Proteína | 0g Carbos | 5g Grasa (0.7g Sat, 1.4g Mono, 2.7g Poli).
-   * Pechuga de pollo cocida (100g): 165 kcal | 31g Proteína | 0g Carbos | 3.6g Grasa (1.0g Sat, 1.2g Mono, 0.8g Poli) | 85mg Colesterol | 85mg Colina | 334mg Potasio.
-   * Arroz blanco cocido (100g): 130 kcal | 2.7g Proteína | 28.2g Carbos | 0.3g Grasa | 0.8g Fibra.
-   * Aguacate Hass (100g): 160 kcal | 2g Proteína | 8.5g Carbos | 14.7g Grasa (2.1g Sat, 9.8g Mono, 1.8g Poli, 0.1g Omega3) | 6.7g Fibra | 485mg Potasio.
-   * Powerade / Bebida deportiva (1000ml): 240 kcal | 0g Proteína | 60g Carbos | 0g Grasa | 500mg Sodio | 125mg Potasio.
-   * Creatina Monohidratada (5g): 0 kcal (o 20 kcal amino), 0g grasa, 0g carbos.
+   * Creatina Monohidratada Creapure (5g): 0 kcal, 0g grasa, 0g carbos.
+   * Citrato de Magnesio (400mg): 0 kcal, 400mg magnesio elemental.
+   * Vitamina C / Ácido Ascórbico (400-500mg): 0 kcal, 400-500mg vit C.
 
 3. MATEMÁTICA Y BALANCE DETERMINISTA:
    - totalCalories = (totalProtein * 4) + (totalCarbs * 4) + (totalFat * 9).

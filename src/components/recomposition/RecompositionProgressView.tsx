@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Target, 
   TrendingDown, 
@@ -36,12 +36,12 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
   onSaveGoals
 }) => {
   const profile = goals.profile;
-  const startWeight = 78.35;
-  const targetWeight = profile?.targetWeightKg || 71.0;
-  const currentWeight = profile?.currentWeightKg || 78.35;
+  const startWeight = 78.05;
+  const targetWeight = profile?.targetWeightKg || 67.0;
+  const currentWeight = profile?.currentWeightKg || 78.05;
 
   const startWaist = 38.5;
-  const targetWaist = profile?.targetWaistInches || 32.0;
+  const targetWaist = profile?.targetWaistInches || 31.5;
   const currentWaist = profile?.currentWaistInches || 38.5;
 
   // Cálculo de progreso porcentual
@@ -54,11 +54,11 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
   const waistProgressPct = Math.min(100, Math.max(0, Math.round((currentWaistLost / totalWaistToLose) * 100)));
 
   // Determinación de la fase actual
-  // Fase 1: 78.35kg -> 74.0kg y cintura > 35"
-  // Fase 2: 74.0kg -> 71.0kg y cintura 35" -> 32"
-  // Fase 3: <= 71.0kg y cintura <= 32"
+  // Fase 1: 78.05kg -> 74.0kg y cintura > 35"
+  // Fase 2: 74.0kg -> 70.0kg y cintura 35" -> 32"
+  // Fase 3: <= 67.0kg y cintura <= 31.5"
   let currentPhase = 1;
-  if (currentWeight <= 71.0 && currentWaist <= 32.0) {
+  if (currentWeight <= 67.0 && currentWaist <= 31.5) {
     currentPhase = 3;
   } else if (currentWeight <= 74.0 && currentWaist <= 35.0) {
     currentPhase = 2;
@@ -67,8 +67,8 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
   // Formulario de actualización de medidas
   const [newWeight, setNewWeight] = useState(currentWeight.toString());
   const [newWaist, setNewWaist] = useState(currentWaist.toString());
-  const [newBodyFat, setNewBodyFat] = useState((profile?.bodyFatPct || 24.4).toString());
-  const [newVisceral, setNewVisceral] = useState((profile?.visceralFatLevel || 11.5).toString());
+  const [newBodyFat, setNewBodyFat] = useState((profile?.bodyFatPct || 24.3).toString());
+  const [newVisceral, setNewVisceral] = useState((profile?.visceralFatLevel || 11.0).toString());
   const [isSaved, setIsSaved] = useState(false);
   const [isImportingMenu, setIsImportingMenu] = useState(false);
   const [menuLoaded, setMenuLoaded] = useState(false);
@@ -76,8 +76,8 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
   useEffect(() => {
     setNewWeight(currentWeight.toString());
     setNewWaist(currentWaist.toString());
-    setNewBodyFat((profile?.bodyFatPct || 24.4).toString());
-    setNewVisceral((profile?.visceralFatLevel || 11.5).toString());
+    setNewBodyFat((profile?.bodyFatPct || 24.3).toString());
+    setNewVisceral((profile?.visceralFatLevel || 11.0).toString());
   }, [profile]);
 
   const handleSaveMeasurements = async (e: React.FormEvent) => {
@@ -87,9 +87,9 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
       heightCm: profile?.heightCm || 174,
       currentWeightKg: parseFloat(newWeight) || currentWeight,
       targetWeightKg: targetWeight,
-      bmrKcal: profile?.bmrKcal || 1702,
-      bodyFatPct: parseFloat(newBodyFat) || 24.4,
-      visceralFatLevel: parseFloat(newVisceral) || 11.5,
+      bmrKcal: profile?.bmrKcal || 1698,
+      bodyFatPct: parseFloat(newBodyFat) || 24.3,
+      visceralFatLevel: parseFloat(newVisceral) || 11.0,
       currentWaistInches: parseFloat(newWaist) || currentWaist,
       targetWaistInches: targetWaist,
       targetWaterLiters: goals.waterLiters || 3.5,
@@ -133,7 +133,7 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
                 </Badge>
               </h2>
               <p className="text-xs text-slate-500">
-                1.74m • 26 años • Déficit controlado de grasa con preservación/ganancia muscular
+                1.74m • 26 años • Déficit controlado (-700 kcal) • 10,000 pasos + Cardio 2 Fases
               </p>
             </div>
           </div>
@@ -147,7 +147,7 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
           icon={menuLoaded ? <Check size={15} /> : <Sparkles size={15} />}
           className="text-xs shadow-sm self-start sm:self-auto"
         >
-          {menuLoaded ? '¡Menú 3 Comidas Cargado!' : 'Cargar Menú Fase 1 (2,200 kcal)'}
+          {menuLoaded ? '¡Menú 3 Comidas Cargado!' : 'Cargar Menú Fase 1 (1,950 kcal)'}
         </Button>
       </div>
 
@@ -226,7 +226,7 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
           }`}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-900">
-                Fase 1: Salud & Base
+                Fase 1: Salud & Base (Adonis)
               </span>
               <Badge variant={currentPhase === 1 ? 'emerald' : 'slate'} size="sm">
                 {currentPhase === 1 ? 'En Curso' : 'Completada'}
@@ -234,17 +234,17 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
             </div>
 
             <p className="text-xs text-slate-700 font-medium mb-3">
-              Déficit moderado de <strong>~500 kcal</strong> para crear adherencia y oxidar grasa visceral.
+              Déficit controlado de <strong>~700 kcal</strong> con 60m cardio (30m inclinado + 30m plano) y 10,000 pasos.
             </p>
 
             <div className="space-y-1.5 text-xs text-slate-600 border-t border-slate-200/60 pt-2 font-mono">
-              <div>🎯 <strong>2,200 kcal</strong> (175g P • 245g C • 58g F)</div>
-              <div>📉 Rango: <strong>78.35kg → 74.0kg</strong></div>
+              <div>🎯 <strong>1,950 kcal</strong> (170g P • 205g C • 52g F)</div>
+              <div>📉 Rango: <strong>78.05kg → 74.0kg</strong></div>
               <div>📏 Cintura: <strong>38.5" → 35.0"</strong></div>
             </div>
 
             <div className="mt-3 p-2.5 rounded-xl bg-white border border-emerald-200 text-[11px] text-emerald-900 font-medium">
-              <strong>Condición para Fase 2:</strong> Llegar a 74.0 kg y reducir cintura a 35.0" con alta energía.
+              <strong>Condición para Fase 2:</strong> Llegar a 74.0 kg y reducir cintura a 35.0" conservando fuerza.
             </div>
           </div>
 
@@ -264,17 +264,17 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
             </div>
 
             <p className="text-xs text-slate-700 font-medium mb-3">
-              Déficit más ajustado (<strong>~300 kcal</strong>) y aumento de proteína a <strong>185g</strong> para máxima rocosidad.
+              Déficit ajustado y sobrecarga progresiva para máxima rocosidad y vascularidad.
             </p>
 
             <div className="space-y-1.5 text-xs text-slate-600 border-t border-slate-200/60 pt-2 font-mono">
-              <div>🎯 <strong>2,050 kcal</strong> (185g P • 215g C • 50g F)</div>
-              <div>📉 Rango: <strong>74.0kg → 71.0kg</strong></div>
-              <div>📏 Cintura: <strong>35.0" → 32.0"</strong></div>
+              <div>🎯 <strong>1,850 kcal</strong> (175g P • 185g C • 48g F)</div>
+              <div>📉 Rango: <strong>74.0kg → 70.0kg</strong></div>
+              <div>📏 Cintura: <strong>35.0" → 32.5"</strong></div>
             </div>
 
             <div className="mt-3 p-2.5 rounded-xl bg-white border border-purple-200 text-[11px] text-purple-900 font-medium">
-              <strong>Condición para Fase 3:</strong> Llegar a 71.0 kg, cintura 32" y grasa corporal &lt; 15%.
+              <strong>Condición para Fase 3:</strong> Llegar a 67.0 kg, cintura 31.5" y grasa corporal &le; 12%.
             </div>
           </div>
 
@@ -286,7 +286,7 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
           }`}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-extrabold uppercase tracking-wider text-amber-900">
-                Fase 3: Mantenimiento Magro
+                Fase 3: Protocolo Adonis 12%
               </span>
               <Badge variant={currentPhase === 3 ? 'amber' : 'slate'} size="sm">
                 {currentPhase === 3 ? 'En Curso' : 'Meta Final'}
@@ -294,17 +294,17 @@ export const RecompositionProgressView: React.FC<RecompositionProgressViewProps>
             </div>
 
             <p className="text-xs text-slate-700 font-medium mb-3">
-              Calorías normocalóricas de mantenimiento para rendimiento atlético y salud metabólica óptima.
+              Normocalórica de mantenimiento atlético con ratio V-Taper 1.618 y plenitud muscular.
             </p>
 
             <div className="space-y-1.5 text-xs text-slate-600 border-t border-slate-200/60 pt-2 font-mono">
-              <div>🎯 <strong>2,450 kcal</strong> (170g P • 290g C • 65g F)</div>
-              <div>📉 Peso Estable: <strong>71.0kg ± 1kg</strong></div>
-              <div>📏 Cintura Estable: <strong>31.5" - 32.0"</strong></div>
+              <div>🎯 <strong>2,450 kcal</strong> (170g P • 340-360g C • 50g F)</div>
+              <div>📉 Peso Estable: <strong>67.0kg ± 1kg</strong></div>
+              <div>📏 Cintura Estable: <strong>31.0" - 31.5"</strong></div>
             </div>
 
             <div className="mt-3 p-2.5 rounded-xl bg-white border border-amber-200 text-[11px] text-amber-900 font-medium">
-              <strong>Estado:</strong> 10-12% grasa corporal, masa magra consolidada y plenitud muscular.
+              <strong>Estado:</strong> 12% grasa corporal, serratos definidos, piel firme y masa consolidada.
             </div>
           </div>
         </div>

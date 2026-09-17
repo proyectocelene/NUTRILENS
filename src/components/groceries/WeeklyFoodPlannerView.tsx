@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   ShoppingCart, 
   Check, 
@@ -36,34 +36,40 @@ interface GroceryItem {
 }
 
 const DEFAULT_WEEKLY_GROCERY_PLAN: GroceryItem[] = [
-  // Origen Animal
-  { id: 'g1', name: 'Pechuga de Pollo Fresca', category: 'animal', weeklyAmount: '1.7 kg', estimatedUnits: '~7 porciones de 240g', checked: false },
-  { id: 'g2', name: 'Huevos Enteros Grandes (Docena)', category: 'animal', weeklyAmount: '28 unidades', estimatedUnits: '~4 huevos diarios', checked: false },
-  { id: 'g3', name: 'Claras de Huevo Líquidas', category: 'animal', weeklyAmount: '1 Litro', estimatedUnits: '~135ml por desayuno', checked: false },
-  { id: 'g4', name: 'Salmón o Atún Fresco', category: 'animal', weeklyAmount: '600g', estimatedUnits: '~3 porciones de 200g', checked: false },
+  // Origen Animal & Lácteos Proteicos
+  { id: 'g1', name: 'Pechuga de Pollo Fresca', category: 'animal', weeklyAmount: '1.2 kg', estimatedUnits: '~7 porciones de 120g cocido', checked: false },
+  { id: 'g2', name: 'Atún Dolores en Agua', category: 'animal', weeklyAmount: '7 latas', estimatedUnits: '1 lata diaria post-gym (100g drenado)', checked: false },
+  { id: 'g3', name: 'Leche Alpura Pro Deslactosada', category: 'animal', weeklyAmount: '3 Litros', estimatedUnits: '~350ml por desayuno anabólico', checked: false },
+  { id: 'g4', name: 'Yogur Griego Fage 0% o Chobani Zero', category: 'animal', weeklyAmount: '1.2 kg', estimatedUnits: '~170g nocturnos (caseína micelar)', checked: false },
+  { id: 'g5', name: 'Huevos Enteros Frescos', category: 'animal', weeklyAmount: '1 docena', estimatedUnits: 'Para rotación o días de descanso', checked: false },
 
-  // Granos & Tubérculos
-  { id: 'g5', name: 'Arroz Blanco / Jazmín', category: 'grains', weeklyAmount: '1.5 kg', estimatedUnits: '~350g cocido por almuerzo', checked: false },
-  { id: 'g6', name: 'Avena Integral en Hojuelas', category: 'grains', weeklyAmount: '600g', estimatedUnits: '~80g por desayuno', checked: false },
-  { id: 'g7', name: 'Batatas / Papas', category: 'grains', weeklyAmount: '1.0 kg', estimatedUnits: '~4 porciones de guarnición', checked: false },
+  // Granos & Cereales
+  { id: 'g6', name: 'Pan Bimbo Cero Cero Multigrano', category: 'grains', weeklyAmount: '2 paquetes', estimatedUnits: '~3 rebanadas/día (2 almuerzo + 1 cena)', checked: false },
+  { id: 'g7', name: 'Arroz Blanco o Jazmín', category: 'grains', weeklyAmount: '1.2 kg', estimatedUnits: '~160g cocido por almuerzo (1 taza)', checked: false },
+  { id: 'g8', name: 'Avena Integral en Hojuelas', category: 'grains', weeklyAmount: '500g', estimatedUnits: '~30g nocturnos mezclados en yogur', checked: false },
+  { id: 'g9', name: 'Papas o Batatas', category: 'grains', weeklyAmount: '1.0 kg', estimatedUnits: 'Alternativa saciante al arroz (Air Fryer)', checked: false },
 
   // Frutas
-  { id: 'g8', name: 'Plátanos / Bananos', category: 'fruits', weeklyAmount: '7 unidades (~1 kg)', estimatedUnits: '1 plátano post-entreno diario', checked: false },
-  { id: 'g9', name: 'Manzanas o Fresas', category: 'fruits', weeklyAmount: '800g', estimatedUnits: 'Snacks ricos en fibra y vit C', checked: false },
+  { id: 'g10', name: 'Plátanos / Bananos', category: 'fruits', weeklyAmount: '7 unidades (~1 kg)', estimatedUnits: '1 plátano mediano diario en desayuno', checked: false },
+  { id: 'g11', name: 'Manzanas o Fresas', category: 'fruits', weeklyAmount: '800g', estimatedUnits: 'Snacks ricos en fibra y antioxidantes', checked: false },
 
-  // Verduras
-  { id: 'g10', name: 'Espinacas Frescas Baby', category: 'vegetables', weeklyAmount: '500g', estimatedUnits: 'Ensaladas y revueltos con hierro', checked: false },
-  { id: 'g11', name: 'Mix Ensalada Verde / Lechuga', category: 'vegetables', weeklyAmount: '1.2 kg', estimatedUnits: '~150-200g diarios', checked: false },
-  { id: 'g12', name: 'Tomates y Pepinos', category: 'vegetables', weeklyAmount: '1.0 kg', estimatedUnits: 'Aporte de potasio e hidratación', checked: false },
+  // Verduras & Hojas Verdes
+  { id: 'g12', name: 'Espinacas Frescas Baby', category: 'vegetables', weeklyAmount: '500g', estimatedUnits: 'Ensalada del almuerzo con folato y hierro', checked: false },
+  { id: 'g13', name: 'Pepinos y Tomates Bola', category: 'vegetables', weeklyAmount: '1.5 kg', estimatedUnits: 'Volumen y saciedad máxima en almuerzo', checked: false },
+  { id: 'g14', name: 'Limones frescos y Sal Marina', category: 'vegetables', weeklyAmount: '1 bolsa', estimatedUnits: 'Aderezo y electrolitos con agua fría', checked: false },
 
   // Grasas Saludables
-  { id: 'g13', name: 'Aguacates Hass', category: 'fats', weeklyAmount: '6 a 7 unidades', estimatedUnits: '~70g diario (medio aguacate)', checked: false },
-  { id: 'g14', name: 'Aceite de Oliva Virgen Extra', category: 'fats', weeklyAmount: '1 botella (500ml)', estimatedUnits: '1 cucharada para aderezar', checked: false },
+  { id: 'g15', name: 'Aguacates Hass', category: 'fats', weeklyAmount: '3 a 4 unidades', estimatedUnits: '~35g diarios (1/4 de aguacate en almuerzo)', checked: false },
+  { id: 'g16', name: 'Mantequilla de Maní Pura (100% Cacahuate)', category: 'fats', weeklyAmount: '1 frasco (350g)', estimatedUnits: '~15g diarios (1 cda sopera en cena)', checked: false },
+  { id: 'g17', name: 'Almendras enteras naturales', category: 'fats', weeklyAmount: '1 bolsa (200g)', estimatedUnits: '~10g diarios (8-10 pzas en cena)', checked: false },
+  { id: 'g18', name: 'Aceite de Oliva Virgen Extra', category: 'fats', weeklyAmount: '1 botella (500ml)', estimatedUnits: 'Grasas monoinsaturadas cardiosaludables', checked: false },
 
-  // Suplementos
-  { id: 'g15', name: 'Creatina Monohidratada 100% Creapure', category: 'supplements', weeklyAmount: '35g semanales', estimatedUnits: '5g diarios constantes', checked: false },
-  { id: 'g16', name: 'Vitamina D3 (2,000 - 4,000 UI)', category: 'supplements', weeklyAmount: '7 cápsulas', estimatedUnits: '1 cápsula con desayuno', checked: false },
-  { id: 'g17', name: 'Citrato de Magnesio (400mg)', category: 'supplements', weeklyAmount: '7 tomas', estimatedUnits: '1 toma nocturna antes de dormir', checked: false }
+  // Suplementos Adonis & Micronutrientes Dérmicos
+  { id: 'g19', name: "Proteína Whey Bulk Power (Vanilla S'mores)", category: 'supplements', weeklyAmount: '1 bote (~7 scoops)', estimatedUnits: '1 scoop diario (30g) en desayuno', checked: false },
+  { id: 'g20', name: 'Creatina Monohidratada Creapure', category: 'supplements', weeklyAmount: '35g semanales', estimatedUnits: '5g diarios nocturnos con agua', checked: false },
+  { id: 'g21', name: 'Citrato de Magnesio (400mg)', category: 'supplements', weeklyAmount: '7 tomas', estimatedUnits: '1 toma nocturna antes de dormir', checked: false },
+  { id: 'g22', name: 'Vitamina C (400 - 500mg)', category: 'supplements', weeklyAmount: '7 tomas', estimatedUnits: '1 toma nocturna para síntesis colágeno', checked: false },
+  { id: 'g23', name: 'Cafeína 200mg / Caffenio Enerchill sin azúcar', category: 'supplements', weeklyAmount: '6 tomas', estimatedUnits: 'Pre-entreno 12:40 PM + agua con sal marina', checked: false }
 ];
 
 export const WeeklyFoodPlannerView: React.FC<WeeklyFoodPlannerViewProps> = ({
@@ -72,7 +78,7 @@ export const WeeklyFoodPlannerView: React.FC<WeeklyFoodPlannerViewProps> = ({
 }) => {
   const [groceryList, setGroceryList] = useState<GroceryItem[]>(() => {
     try {
-      const saved = localStorage.getItem('nutrilens_grocery_list');
+      const saved = localStorage.getItem('nutrilens_grocery_list_v2');
       return saved ? JSON.parse(saved) : DEFAULT_WEEKLY_GROCERY_PLAN;
     } catch {
       return DEFAULT_WEEKLY_GROCERY_PLAN;
@@ -87,23 +93,23 @@ export const WeeklyFoodPlannerView: React.FC<WeeklyFoodPlannerViewProps> = ({
       item.id === id ? { ...item, checked: !item.checked } : item
     );
     setGroceryList(updated);
-    localStorage.setItem('nutrilens_grocery_list', JSON.stringify(updated));
+    localStorage.setItem('nutrilens_grocery_list_v2', JSON.stringify(updated));
   };
 
   const handleResetList = () => {
     setGroceryList(DEFAULT_WEEKLY_GROCERY_PLAN);
-    localStorage.setItem('nutrilens_grocery_list', JSON.stringify(DEFAULT_WEEKLY_GROCERY_PLAN));
+    localStorage.setItem('nutrilens_grocery_list_v2', JSON.stringify(DEFAULT_WEEKLY_GROCERY_PLAN));
   };
 
   const handleCopyShoppingList = () => {
-    let text = `🛒 LISTA DE COMPRAS SEMANALES NUTRILENS (Plan 2,200 kcal)\n\n`;
+    let text = `🛒 LISTA DE COMPRAS SEMANALES NUTRILENS (Protocolo Adonis 1,950 kcal)\n\n`;
     const categories = [
-      { id: 'animal', label: '🥩 Origen Animal & Proteínas' },
+      { id: 'animal', label: '🥩 Origen Animal & Lácteos Proteicos' },
       { id: 'grains', label: '🌾 Granos, Cereales & Tubérculos' },
-      { id: 'vegetables', label: '🥦 Verduras & Vegetales' },
+      { id: 'vegetables', label: '🥦 Verduras, Vegetales & Electrolitos' },
       { id: 'fruits', label: '🍎 Frutas Frescas' },
       { id: 'fats', label: '🥑 Grasas Saludables' },
-      { id: 'supplements', label: '💊 Suplementación & Micronutrientes' }
+      { id: 'supplements', label: '💊 Suplementación Adonis & Dérmicos' }
     ];
 
     categories.forEach(cat => {
@@ -143,7 +149,7 @@ export const WeeklyFoodPlannerView: React.FC<WeeklyFoodPlannerViewProps> = ({
               <Badge variant="blue" size="sm">7 Días</Badge>
             </h2>
             <p className="text-xs text-slate-500">
-              Calculada para cubrir tus 2,200 kcal diarias, 175g de proteína y el 100% de micronutrientes
+              Calculada para cubrir tus 1,950 kcal diarias, 170g de proteína, 10,000 pasos y el 100% de micronutrientes
             </p>
           </div>
         </div>

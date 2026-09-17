@@ -34,7 +34,7 @@ export const CalorieMeter: React.FC<CalorieMeterProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900">Balance Calórico Diario</h3>
-            <p className="text-xs text-slate-500">Meta de recomposición (2,200 kcal)</p>
+            <p className="text-xs text-slate-500">Meta de recomposición (1,950 kcal)</p>
           </div>
         </div>
 
