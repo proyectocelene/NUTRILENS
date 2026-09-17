@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sparkles, Key, Check, Save, ExternalLink, ShieldCheck, Zap, Layers, Cpu } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
@@ -206,6 +206,8 @@ export const AiConfigCard: React.FC = () => {
                 <option value="gemini-flash-latest">Gemini Flash Latest</option>
                 <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                 <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash (Multimodal)</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Respaldo)</option>
               </select>
             </div>
           </div>

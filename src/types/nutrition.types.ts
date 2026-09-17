@@ -34,6 +34,10 @@ export interface Micronutrients {
   trans_fat_g?: number;
   omega3_g?: number;
   choline_mg?: number;
+  
+  // Suplementos y Estimulantes Clave
+  caffeine_mg?: number;
+  creatine_g?: number;
 }
 
 export interface CanonicalFood {
@@ -119,6 +123,8 @@ export interface UserProfileMeta {
   currentWaistInches: number;
   targetWaterLiters: number;
   creatineDailyGrams: number;
+  caffeineDailyMaxMg?: number;
+  caffeineCutoffHour?: number; // Hora límite recomendada (ej: 15 para 3 PM)
 }
 
 export interface NutritionGoals {

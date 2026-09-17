@@ -71,6 +71,16 @@ export const NUTRIENT_RICH_FOODS: Record<string, { name: string; unit: string; f
     name: 'Zinc',
     unit: 'mg',
     foods: ['Ostras y mariscos', 'Carne de ternera', 'Semillas de calabaza y cáñamo', 'Garbanzos', 'Anacardos']
+  },
+  caffeine_mg: {
+    name: 'Cafeína',
+    unit: 'mg',
+    foods: ['Café espresso (80mg)', 'Café filtrado (120mg)', 'Té matcha / verde (40mg)', 'Pre-entreno', 'Yerba mate (70mg)', 'Cacao puro']
+  },
+  creatine_g: {
+    name: 'Creatina',
+    unit: 'g',
+    foods: ['Monohidrato de creatina (5g dosis saturación)', 'Arenque', 'Salmón', 'Carne de res magra']
   }
 };
 

@@ -1,4 +1,4 @@
-﻿import { Meal, NutritionGoals, CanonicalFood } from './nutrition.types';
+import { Meal, NutritionGoals, CanonicalFood } from './nutrition.types';
 
 export interface DbRecipe {
   id?: string;
@@ -15,6 +15,22 @@ export interface DbRecipe {
   instructions?: string;
   tags?: string[];
   createdAt: number;
+}
+
+export interface LearnedFood {
+  id: string;
+  name: string;
+  count: number;
+  lastUsedDate: string;
+  avgCalories: number;
+  avgProtein: number;
+  avgCarbs: number;
+  avgFat: number;
+  avgFiber: number;
+  sampleAmount: string;
+  sampleMealName: string;
+  nutrients?: Meal['totalNutrients'];
+  isAlreadyCanonical: boolean;
 }
 
 export type ReflectionReasonTag = 
@@ -39,6 +55,8 @@ export interface DbDailyLog {
   reasonTag?: ReflectionReasonTag;
   reflectionNotes?: string;
   creatineTaken?: boolean;
+  creatineG?: number;
+  caffeineMg?: number;
 }
 
 export interface Achievement {
@@ -62,12 +80,43 @@ export interface GamificationState {
   unlockedAchievementIds: string[];
 }
 
+export interface DatabaseAuditDiagnostic {
+  totalEntitiesCount: number;
+  mealsCount: number;
+  individualFoodsCount: number;
+  recipesCount: number;
+  canonicalFoodsCount: number;
+  learnedFoodsCount: number;
+  dailyLogsCount: number;
+  integrityScorePct: number; // 0 - 100
+  atwaterDiscrepanciesCount: number;
+  lipidDiscrepanciesCount: number;
+  issuesList: {
+    type: 'warning' | 'error' | 'info';
+    entityType: 'meal' | 'food' | 'canonical' | 'recipe' | 'log';
+    id: string;
+    title: string;
+    description: string;
+    expected?: string;
+    actual?: string;
+  }[];
+}
+
 export interface ExportDataPayload {
   version: number;
+  app: string;
   exportDate: string;
+  auditSummary?: DatabaseAuditDiagnostic;
   meals: Meal[];
   recipes: DbRecipe[];
   goals: NutritionGoals;
   logs: DbDailyLog[];
   canonicalFoods?: CanonicalFood[];
+  learnedFoods?: LearnedFood[];
+  gamification?: GamificationState;
+  localSettings?: {
+    aiProvider?: string;
+    aiModel?: string;
+    hasFirebaseSync?: boolean;
+  };
 }

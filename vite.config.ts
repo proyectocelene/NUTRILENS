@@ -45,5 +45,19 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webmanifest}']
       }
     })
-  ]
+  ],
+  build: {
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-charts': ['recharts'],
+          'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+          'vendor-db': ['dexie', 'dexie-react-hooks'],
+          'vendor-icons': ['lucide-react']
+        }
+      }
+    }
+  }
 });

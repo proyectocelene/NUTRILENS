@@ -1,7 +1,8 @@
-﻿import React, { useState } from 'react';
-import { Calendar, Clock, CheckCircle, Smile, Activity, Heart, MessageSquare, Zap, ShieldCheck } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Calendar, Clock, CheckCircle, Smile, Activity, Heart, MessageSquare, Zap, ShieldCheck, Calculator, AlertCircle, CheckCheck, RefreshCw } from 'lucide-react';
 import { Meal, MealType, SatietyLevel, DigestionFeeling, EnergyLevel } from '../../types/nutrition.types';
 import { FoodItemsList } from '../nutrition/FoodItemsList';
+import { verifyMealMath, autoBalanceMealMath } from '../../services/jsonParser';
 
 interface PreviewMealCardProps {
   meal: Meal;
@@ -41,6 +42,13 @@ const ENERGY_OPTIONS: { id: EnergyLevel; label: string; emoji: string }[] = [
 export const PreviewMealCard: React.FC<PreviewMealCardProps> = ({ meal, onUpdateMealMeta }) => {
   const microsCount = meal.totalNutrients ? Object.keys(meal.totalNutrients).length : 0;
   const [showBiofeedback, setShowBiofeedback] = useState(true);
+
+  const mathReport = useMemo(() => verifyMealMath(meal), [meal]);
+
+  const handleAutoBalance = () => {
+    const balanced = autoBalanceMealMath(meal);
+    onUpdateMealMeta(balanced);
+  };
 
   const biofeedback = meal.biofeedback || {};
 
@@ -154,6 +162,55 @@ export const PreviewMealCard: React.FC<PreviewMealCardProps> = ({ meal, onUpdate
           <span className="text-base font-extrabold text-purple-800">{meal.totalFiber}g</span>
           <span className="text-[10px] text-slate-400 block">{microsCount} micros</span>
         </div>
+      </div>
+
+      {/* SECCIÓN AUDITORÍA MATEMÁTICA Y LÓGICA DE LA IA */}
+      <div className={`p-3.5 rounded-2xl border transition-all ${
+        mathReport.isMathematicallySound
+          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
+          : 'bg-amber-50/80 border-amber-300 text-amber-950'
+      }`}>
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-1.5">
+          <div className="flex items-center gap-2">
+            <div className={`p-1.5 rounded-lg shrink-0 ${
+              mathReport.isMathematicallySound ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+            }`}>
+              {mathReport.isMathematicallySound ? <CheckCheck size={16} /> : <Calculator size={16} />}
+            </div>
+            <div>
+              <span className="text-xs font-bold block">
+                {mathReport.isMathematicallySound
+                  ? 'Matemáticas y Cuentas Verificadas (100% Coherente)'
+                  : 'Ajuste Matemático / Descuadre de IA Detectado'}
+              </span>
+              <span className="text-[10px] text-slate-600 font-mono">
+                Suma ingredientes: <strong>{mathReport.foodsSumCalories} kcal</strong> | Balance Atwater (4P+4C+9G): <strong>{mathReport.atwaterCalculatedCalories} kcal</strong>
+              </span>
+            </div>
+          </div>
+
+          {!mathReport.isMathematicallySound && (
+            <button
+              type="button"
+              onClick={handleAutoBalance}
+              className="py-1 px-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-98 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all"
+            >
+              <RefreshCw size={13} />
+              <span>Auto-Corregir & Sincronizar Cuentas</span>
+            </button>
+          )}
+        </div>
+
+        {!mathReport.isMathematicallySound && mathReport.discrepancies.length > 0 && (
+          <div className="space-y-1 pt-1.5 border-t border-amber-200/80 text-[11px] text-amber-900">
+            {mathReport.discrepancies.map((d, idx) => (
+              <div key={idx} className="flex items-center gap-1.5">
+                <AlertCircle size={12} className="text-amber-700 shrink-0" />
+                <span>{d.message}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* SECCIÓN BIOFEEDBACK: Cómo me sentí con esta comida (+15 XP) */}

@@ -1,6 +1,6 @@
 import { db } from './index';
 import { Meal, NutritionGoals, CanonicalFood } from '../types/nutrition.types';
-import { DbRecipe, DbDailyLog } from '../types/db.types';
+import { DbRecipe, DbDailyLog, LearnedFood } from '../types/db.types';
 import { 
   syncMealToFirestore, 
   deleteMealFromFirestore, 
@@ -106,6 +106,79 @@ export const dbService = {
 
   async getCanonicalFoodById(id: string): Promise<CanonicalFood | undefined> {
     return await db.canonicalFoods.get(id);
+  },
+
+  // Alimentos Aprendidos de Comidas (Banco No Canónico / Histórico)
+  async getLearnedFoods(): Promise<LearnedFood[]> {
+    const meals = await db.meals.toArray();
+    const canonicalList = await db.canonicalFoods.toArray();
+    const canonicalNames = new Set(canonicalList.map(c => c.name.trim().toLowerCase()));
+
+    const map = new Map<string, {
+      name: string;
+      count: number;
+      totalCalories: number;
+      totalProtein: number;
+      totalCarbs: number;
+      totalFat: number;
+      totalFiber: number;
+      lastDate: string;
+      sampleAmount: string;
+      sampleMealName: string;
+      nutrients?: any;
+    }>();
+
+    for (const meal of meals) {
+      if (!meal.foods) continue;
+      for (const food of meal.foods) {
+        if (!food.name || !food.name.trim()) continue;
+        const key = food.name.trim().toLowerCase();
+        const existing = map.get(key);
+        if (existing) {
+          existing.count += 1;
+          existing.totalCalories += Number(food.calories) || 0;
+          existing.totalProtein += Number(food.protein) || 0;
+          existing.totalCarbs += Number(food.carbs) || 0;
+          existing.totalFat += Number(food.fat) || 0;
+          existing.totalFiber += Number(food.fiber) || 0;
+          if (meal.date >= existing.lastDate) {
+            existing.lastDate = meal.date;
+            existing.sampleAmount = food.amount || existing.sampleAmount;
+            existing.sampleMealName = meal.name;
+          }
+        } else {
+          map.set(key, {
+            name: food.name.trim(),
+            count: 1,
+            totalCalories: Number(food.calories) || 0,
+            totalProtein: Number(food.protein) || 0,
+            totalCarbs: Number(food.carbs) || 0,
+            totalFat: Number(food.fat) || 0,
+            totalFiber: Number(food.fiber) || 0,
+            lastDate: meal.date,
+            sampleAmount: food.amount || '1 porción (~100g)',
+            sampleMealName: meal.name,
+            nutrients: food.nutrients
+          });
+        }
+      }
+    }
+
+    return Array.from(map.values()).map(item => ({
+      id: `learned_${item.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+      name: item.name,
+      count: item.count,
+      lastUsedDate: item.lastDate,
+      avgCalories: Math.round(item.totalCalories / item.count),
+      avgProtein: Math.round((item.totalProtein / item.count) * 10) / 10,
+      avgCarbs: Math.round((item.totalCarbs / item.count) * 10) / 10,
+      avgFat: Math.round((item.totalFat / item.count) * 10) / 10,
+      avgFiber: Math.round((item.totalFiber / item.count) * 10) / 10,
+      sampleAmount: item.sampleAmount,
+      sampleMealName: item.sampleMealName,
+      nutrients: item.nutrients,
+      isAlreadyCanonical: canonicalNames.has(item.name.toLowerCase())
+    })).sort((a, b) => b.count - a.count);
   },
 
   // Metas

@@ -1,13 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { Download, Upload, Database, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Download, Upload, Database, CheckCircle2, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
 import { exportDatabaseToJson, importDatabaseFromJson } from '../../services/backupService';
+import { DatabaseAuditorModal } from '../analytics/DatabaseAuditorModal';
 
 export const BackupManager: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAuditorOpen, setIsAuditorOpen] = useState(false);
 
   const handleExport = async () => {
     try {
@@ -44,14 +46,26 @@ export const BackupManager: React.FC = () => {
 
   return (
     <Card className="border-slate-200 bg-white">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-200">
-          <Database size={18} />
+      <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-200">
+            <Database size={18} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Persistencia, Auditoría y Respaldos</h3>
+            <p className="text-xs text-slate-500">Tus datos se guardan de forma permanente en tu dispositivo y nunca se borran</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-slate-900">Persistencia y Respaldos (IndexedDB)</h3>
-          <p className="text-xs text-slate-500">Tus datos se guardan de forma permanente en tu dispositivo y nunca se borran</p>
-        </div>
+
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => setIsAuditorOpen(true)}
+          icon={<Activity size={14} />}
+          className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xs"
+        >
+          🔍 Auditor de Base de Datos
+        </Button>
       </div>
 
       <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 mb-4 flex items-start gap-3">
@@ -59,7 +73,7 @@ export const BackupManager: React.FC = () => {
         <div className="text-xs text-slate-700 space-y-1">
           <p className="font-bold text-emerald-900">Almacenamiento Local Seguro Offline-First</p>
           <p className="text-slate-600 leading-relaxed">
-            NutriLens utiliza IndexedDB para persistir todo el historial de comidas, recetas y metas en el navegador. Además, puedes descargar un archivo de respaldo en cualquier momento para transferirlo a otros dispositivos.
+            NutriLens utiliza IndexedDB para persistir todo el historial de comidas, recetas y metas en el navegador. Además, puedes auditar toda la estructura bioquímica y descargar un archivo de respaldo en cualquier momento para transferirlo a otros dispositivos.
           </p>
         </div>
       </div>
@@ -82,7 +96,7 @@ export const BackupManager: React.FC = () => {
           <div>
             <h4 className="text-xs font-bold text-slate-900 mb-1">Exportar Base de Datos</h4>
             <p className="text-[11px] text-slate-500 mb-3">
-              Descarga un archivo .json con todas tus comidas, banco de recetas y configuración actual.
+              Descarga un archivo .json con todas tus comidas, banco canónico, recetas y configuración actual.
             </p>
           </div>
           <Button
@@ -124,6 +138,11 @@ export const BackupManager: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <DatabaseAuditorModal
+        isOpen={isAuditorOpen}
+        onClose={() => setIsAuditorOpen(false)}
+      />
     </Card>
   );
 };

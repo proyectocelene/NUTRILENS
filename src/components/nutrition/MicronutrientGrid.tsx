@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Sparkles, Heart } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Micronutrients, NutritionGoals } from '../../types/nutrition.types';
@@ -14,11 +14,15 @@ interface NutrientDef {
   name: string;
   unit: string;
   targetKey?: keyof NutritionGoals['microGoals'];
-  category: 'lipids' | 'vitamins' | 'minerals' | 'other';
+  category: 'lipids' | 'vitamins' | 'minerals' | 'supplements' | 'other';
   idealNote?: string;
 }
 
 const NUTRIENT_DEFINITIONS: NutrientDef[] = [
+  // Suplementos Clave & Estimulantes
+  { key: 'caffeine_mg', name: 'Cafeína', unit: 'mg', category: 'supplements', idealNote: 'Límite seguro FDA: ≤400mg. Evitar tras 15:00' },
+  { key: 'creatine_g', name: 'Creatina Monohidrato', unit: 'g', category: 'supplements', idealNote: 'Meta diaria: 3g - 5g (saturación)' },
+
   // Perfil Lipídico & Grasas
   { key: 'omega3_g', name: 'Omega 3 (EPA/DHA/ALA)', unit: 'g', category: 'lipids', idealNote: 'Meta: ≥1.5g / día' },
   { key: 'monounsaturated_fat_g', name: 'Grasas Monoinsaturadas (Buenas)', unit: 'g', category: 'lipids', idealNote: 'Aceite de oliva, aguacate' },
@@ -53,7 +57,7 @@ const NUTRIENT_DEFINITIONS: NutrientDef[] = [
 ];
 
 export const MicronutrientGrid: React.FC<MicronutrientGridProps> = ({ nutrients, goals }) => {
-  const [filterCategory, setFilterCategory] = useState<'all' | 'lipids' | 'vitamins' | 'minerals' | 'other'>('all');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'supplements' | 'lipids' | 'vitamins' | 'minerals' | 'other'>('all');
 
   const filteredDefinitions = NUTRIENT_DEFINITIONS.filter(d => {
     if (filterCategory === 'all') return true;
@@ -63,19 +67,22 @@ export const MicronutrientGrid: React.FC<MicronutrientGridProps> = ({ nutrients,
   return (
     <Card className="border-slate-200 bg-white">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 min-w-0">
-        <div className="min-w-0">
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 truncate">
-            <Sparkles size={16} className="text-emerald-600 shrink-0" />
-            <span className="truncate">Desglose Integral de Nutrientes & Lípidos</span>
-          </h3>
-          <p className="text-[11px] sm:text-xs text-slate-500 truncate">Vitaminas, minerales, perfil lipídico (Omega 3, saturadas) y colina</p>
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <Sparkles size={16} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Desglose de Micronutrientes & Suplementos</h3>
+            <p className="text-xs text-slate-500">Vitaminas, minerales, perfil lipídico y estimulantes</p>
+          </div>
         </div>
 
-        {/* Selector de Categorías */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs overflow-x-auto no-scrollbar max-w-full shrink-0">
+        {/* Filtros por Categoría */}
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl overflow-x-auto max-w-full">
           {[
             { id: 'all', label: 'Todos' },
-            { id: 'lipids', label: '🫒 Grasas & Omega 3' },
+            { id: 'supplements', label: '☕ Suplementos' },
+            { id: 'lipids', label: '🥑 Lípidos' },
             { id: 'vitamins', label: '🍊 Vitaminas' },
             { id: 'minerals', label: '⚡ Minerales' }
           ].map(cat => (

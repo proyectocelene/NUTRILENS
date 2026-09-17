@@ -19,13 +19,15 @@ const DESKTOP_NAV_ITEMS: { id: NavView; label: string; icon: LucideIcon }[] = [
   { id: 'settings', label: 'Ajustes', icon: Settings },
 ];
 
-// 5 Pestañas principales en 1 sola fila ultra-compacta para móvil
+// 7 Pestañas completas para acceso directo desde móvil
 const MOBILE_NAV_ITEMS: { id: NavView; label: string; icon: LucideIcon }[] = [
   { id: 'day', label: 'Diario', icon: Calendar },
+  { id: 'canonical', label: 'Canónico', icon: Database },
   { id: 'recomposition', label: 'Fases', icon: Target },
   { id: 'groceries', label: 'Súper', icon: ShoppingCart },
   { id: 'analytics', label: 'Stats', icon: BarChart2 },
   { id: 'recipes', label: 'Recetas', icon: BookOpen },
+  { id: 'settings', label: 'Ajustes', icon: Settings },
 ];
 
 export const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChange }) => {
@@ -55,9 +57,9 @@ export const Navigation: React.FC<NavigationProps> = ({ currentView, onViewChang
         })}
       </nav>
 
-      {/* Mobile Bottom Sticky Navigation (1 Sola Fila Ultra Compacta) */}
+      {/* Mobile Bottom Sticky Navigation (Acceso completo a las 7 vistas) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 px-1 py-1 safe-area-bottom shadow-lg">
-        <div className="grid grid-cols-5 gap-0.5">
+        <div className="grid grid-cols-7 gap-0.5">
           {MOBILE_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;

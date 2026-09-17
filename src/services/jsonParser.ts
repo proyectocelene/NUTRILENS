@@ -1,21 +1,75 @@
 import { FoodItem, Meal, MealType, Micronutrients } from '../types/nutrition.types';
 import { getSmartFoodEmoji } from '../utils/foodEmoji';
 
-// Helper para convertir cadenas o números de forma segura
-function safeNumber(val: any): number {
+// Helper robusto para convertir cadenas o números a flotantes limpios
+export function safeNumber(val: any): number {
   if (val === undefined || val === null) return 0;
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
   if (typeof val === 'string') {
-    // Remover unidades tipo "g", "mg", "kcal", "mcg", "iu"
-    const cleaned = val.replace(/[^0-9.-]+/g, '');
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
+    let clean = val.trim();
+    if (!clean) return 0;
+
+    // Si viene en formato fraccional ej: "1/2", "3/4"
+    if (/^\d+\/\d+$/.test(clean)) {
+      const parts = clean.split('/');
+      const num = parseFloat(parts[0]);
+      const den = parseFloat(parts[1]);
+      return den !== 0 ? num / den : 0;
+    }
+
+    // Reemplazar coma decimal por punto (ej: "2,5" -> "2.5")
+    clean = clean.replace(/(\d+),(\d+)/g, '$1.$2');
+
+    // Remover caracteres no numéricos excepto dígitos, punto y signo negativo
+    clean = clean.replace(/[^0-9.-]+/g, '');
+
+    const parsed = parseFloat(clean);
+    return isNaN(parsed) ? 0 : Math.max(0, parsed);
   }
   return 0;
 }
 
-// Normaliza las claves de micronutrientes (soporta español, inglés y variantes)
-function normalizeNutrients(raw: any): Micronutrients {
+// Extractor tolerante a fallos para extraer JSON puro desde cualquier respuesta de ChatGPT, Claude o Gemini
+export function extractJsonFromString(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+  let text = input.trim();
+
+  // 1. Si contiene bloques de código markdown ```json ... ``` o ``` ... ```
+  const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (codeBlockMatch && codeBlockMatch[1]) {
+    text = codeBlockMatch[1].trim();
+  }
+
+  // 2. Si aún contiene texto conversacional previo o posterior, buscar desde el primer '{' o '[' hasta el último '}' o ']'
+  const firstBrace = text.indexOf('{');
+  const firstBracket = text.indexOf('[');
+  
+  let startIdx = -1;
+  let endIdx = -1;
+
+  if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+    startIdx = firstBrace;
+    endIdx = text.lastIndexOf('}');
+  } else if (firstBracket !== -1) {
+    startIdx = firstBracket;
+    endIdx = text.lastIndexOf(']');
+  }
+
+  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+    text = text.substring(startIdx, endIdx + 1);
+  }
+
+  // 3. Limpiar trailing commas antes de llaves o corchetes de cierre (muy común en respuestas de IA)
+  text = text.replace(/,\s*([\}\]])/g, '$1');
+
+  // 4. Limpiar comentarios de una línea // ...
+  text = text.replace(/\/\/.*$/gm, '');
+
+  return text;
+}
+
+// Normaliza las claves de micronutrientes (soporta español, inglés y variantes de IA)
+export function normalizeNutrients(raw: any): Micronutrients {
   if (!raw || typeof raw !== 'object') return {};
   const n: Micronutrients = {};
 
@@ -92,7 +146,7 @@ function normalizeNutrients(raw: any): Micronutrients {
     'selenio': 'selenium_mcg',
     'selenium_mcg': 'selenium_mcg',
 
-    // Perfil Lipídico Completo y Otros
+    // Perfil Lipídico
     'cholesterol': 'cholesterol_mg',
     'colesterol': 'cholesterol_mg',
     'cholesterol_mg': 'cholesterol_mg',
@@ -130,7 +184,16 @@ function normalizeNutrients(raw: any): Micronutrients {
     
     'choline': 'choline_mg',
     'colina': 'choline_mg',
-    'choline_mg': 'choline_mg'
+    'choline_mg': 'choline_mg',
+
+    // Suplementos
+    'caffeine': 'caffeine_mg',
+    'cafeina': 'caffeine_mg',
+    'caffeine_mg': 'caffeine_mg',
+
+    'creatine': 'creatine_g',
+    'creatina': 'creatine_g',
+    'creatine_g': 'creatine_g'
   };
 
   for (const [rawKey, rawVal] of Object.entries(raw)) {
@@ -144,7 +207,7 @@ function normalizeNutrients(raw: any): Micronutrients {
   return n;
 }
 
-// Normaliza un alimento individual
+// Normaliza un alimento individual limpiando unidades y tipos
 export function normalizeFoodItem(item: any, index: number = 0): FoodItem {
   if (!item || typeof item !== 'object') {
     return {
@@ -158,20 +221,23 @@ export function normalizeFoodItem(item: any, index: number = 0): FoodItem {
     };
   }
 
-  // Nombre
   const name = item.name || item.nombre || item.food || item.alimento || item.item || `Alimento ${index + 1}`;
   const amount = item.amount || item.cantidad || item.porcion || item.portion || item.serving || '';
 
   // Macros directos
-  const calories = safeNumber(item.calories ?? item.calorias ?? item.kcal ?? item.energy ?? item.energia);
+  let calories = safeNumber(item.calories ?? item.calorias ?? item.kcal ?? item.energy ?? item.energia);
   const protein = safeNumber(item.protein ?? item.proteina ?? item.proteinas ?? item.prot);
   const carbs = safeNumber(item.carbs ?? item.carbohidratos ?? item.hidratos ?? item.carbohydrates ?? item.ch);
   const fat = safeNumber(item.fat ?? item.grasas ?? item.grasa ?? item.fats ?? item.lipidos);
   const fiber = safeNumber(item.fiber ?? item.fibra ?? item.fibers);
 
-  // Micronutrientes (pueden venir en objeto .nutrients, .micronutrients, .micros o en la raíz)
+  // Si no se proporcionaron calorías pero sí macros, calcular por Atwater
+  if (calories === 0 && (protein > 0 || carbs > 0 || fat > 0)) {
+    calories = Math.round((protein * 4) + (carbs * 4) + (fat * 9));
+  }
+
+  // Micronutrientes
   const nestedNutrients = item.nutrients || item.micronutrients || item.nutrientes || item.micros || {};
-  // Extraer también cualquier clave nutricional que esté en el nivel raíz del alimento
   const rootNutrients = normalizeNutrients(item);
   const mergedNutrients = {
     ...rootNutrients,
@@ -195,34 +261,184 @@ export function normalizeFoodItem(item: any, index: number = 0): FoodItem {
   };
 }
 
+export interface MathVerificationReport {
+  isMathematicallySound: boolean;
+  foodsSumCalories: number;
+  foodsSumProtein: number;
+  foodsSumCarbs: number;
+  foodsSumFat: number;
+  foodsSumFiber: number;
+  atwaterCalculatedCalories: number;
+  declaredCalories: number;
+  calorieDifference: number;
+  discrepancies: {
+    field: string;
+    message: string;
+    declared: number;
+    calculated: number;
+  }[];
+}
+
+// Verifica la lógica matemática entre ingredientes, macros totales y fórmula Atwater
+export function verifyMealMath(meal: Meal, declaredTotals?: { calories?: number; protein?: number; carbs?: number; fat?: number; fiber?: number }): MathVerificationReport {
+  let sumCal = 0;
+  let sumP = 0;
+  let sumC = 0;
+  let sumF = 0;
+  let sumFib = 0;
+
+  for (const f of meal.foods) {
+    sumCal += f.calories || 0;
+    sumP += f.protein || 0;
+    sumC += f.carbs || 0;
+    sumF += f.fat || 0;
+    sumFib += (f.fiber || 0);
+  }
+
+  sumCal = Math.round(sumCal);
+  sumP = Math.round(sumP * 10) / 10;
+  sumC = Math.round(sumC * 10) / 10;
+  sumF = Math.round(sumF * 10) / 10;
+  sumFib = Math.round(sumFib * 10) / 10;
+
+  const atwaterCal = Math.round((meal.totalProtein * 4) + (meal.totalCarbs * 4) + (meal.totalFat * 9));
+  const declaredCal = declaredTotals?.calories !== undefined ? declaredTotals.calories : meal.totalCalories;
+
+  const discrepancies: MathVerificationReport['discrepancies'] = [];
+
+  // 1. Discrepancia entre suma de ingredientes y total
+  if (meal.foods.length > 0 && Math.abs(sumCal - meal.totalCalories) > Math.max(10, meal.totalCalories * 0.10)) {
+    discrepancies.push({
+      field: 'calories_sum',
+      message: `La suma de los ingredientes da ${sumCal} kcal, pero el total declarado es ${meal.totalCalories} kcal.`,
+      declared: meal.totalCalories,
+      calculated: sumCal
+    });
+  }
+
+  // 2. Discrepancia con fórmula Atwater (4P + 4C + 9G)
+  if (meal.totalCalories > 30 && Math.abs(atwaterCal - meal.totalCalories) > Math.max(15, meal.totalCalories * 0.18)) {
+    discrepancies.push({
+      field: 'atwater',
+      message: `El balance bioquímico 4P+4C+9G suma ${atwaterCal} kcal, difiriendo de las ${meal.totalCalories} kcal declaradas.`,
+      declared: meal.totalCalories,
+      calculated: atwaterCal
+    });
+  }
+
+  // 3. Discrepancia de proteínas
+  if (declaredTotals?.protein !== undefined && Math.abs(declaredTotals.protein - sumP) > 2) {
+    discrepancies.push({
+      field: 'protein',
+      message: `Proteína declarada (${declaredTotals.protein}g) difiere de la suma de ingredientes (${sumP}g).`,
+      declared: declaredTotals.protein,
+      calculated: sumP
+    });
+  }
+
+  return {
+    isMathematicallySound: discrepancies.length === 0,
+    foodsSumCalories: sumCal,
+    foodsSumProtein: sumP,
+    foodsSumCarbs: sumC,
+    foodsSumFat: sumF,
+    foodsSumFiber: sumFib,
+    atwaterCalculatedCalories: atwaterCal,
+    declaredCalories: declaredCal,
+    calorieDifference: Math.abs(atwaterCal - declaredCal),
+    discrepancies
+  };
+}
+
+// Auto-balancea matemáticamente la comida corrigiendo cualquier error aritmético de la IA
+export function autoBalanceMealMath(meal: Meal): Meal {
+  let sumCal = 0;
+  let sumP = 0;
+  let sumC = 0;
+  let sumF = 0;
+  let sumFib = 0;
+  const totalNutrients: Micronutrients = {};
+
+  const balancedFoods: FoodItem[] = meal.foods.map(food => {
+    const p = food.protein || 0;
+    const c = food.carbs || 0;
+    const f = food.fat || 0;
+    const fib = food.fiber || 0;
+    
+    // Si las calorías del alimento no cuadran con sus macros, balancear
+    const expectedFoodCal = Math.round((p * 4) + (c * 4) + (f * 9));
+    const foodCal = food.calories > 0 && Math.abs(food.calories - expectedFoodCal) <= Math.max(10, food.calories * 0.15)
+      ? food.calories
+      : (expectedFoodCal > 0 ? expectedFoodCal : food.calories);
+
+    sumCal += foodCal;
+    sumP += p;
+    sumC += c;
+    sumF += f;
+    sumFib += fib;
+
+    if (food.nutrients) {
+      for (const [k, v] of Object.entries(food.nutrients)) {
+        const key = k as keyof Micronutrients;
+        if (typeof v === 'number' && !isNaN(v)) {
+          totalNutrients[key] = (totalNutrients[key] || 0) + v;
+        }
+      }
+    }
+
+    return {
+      ...food,
+      calories: foodCal
+    };
+  });
+
+  // Redondear
+  for (const k of Object.keys(totalNutrients)) {
+    const key = k as keyof Micronutrients;
+    if (totalNutrients[key] !== undefined) {
+      totalNutrients[key] = Math.round((totalNutrients[key] as number) * 10) / 10;
+    }
+  }
+
+  return {
+    ...meal,
+    foods: balancedFoods,
+    totalCalories: Math.round(sumCal),
+    totalProtein: Math.round(sumP * 10) / 10,
+    totalCarbs: Math.round(sumC * 10) / 10,
+    totalFat: Math.round(sumF * 10) / 10,
+    totalFiber: Math.round(sumFib * 10) / 10,
+    totalNutrients: {
+      ...totalNutrients,
+      ...(meal.totalNutrients || {})
+    },
+    updatedAt: Date.now()
+  };
+}
+
 export interface ParseResult {
   success: boolean;
   meal?: Meal;
+  mathReport?: MathVerificationReport;
   error?: string;
 }
 
-// Parsea un string JSON o texto con soporte tolerante a fallos
+// Parsea un string JSON con tolerancia a fallos, extracción de texto conversacional y validación matemática
 export function parseMealJson(input: string): ParseResult {
   if (!input || !input.trim()) {
     return { success: false, error: 'El contenido JSON está vacío.' };
   }
 
+  const cleanJson = extractJsonFromString(input);
+  if (!cleanJson) {
+    return { success: false, error: 'No se pudo detectar una estructura JSON válida en el texto.' };
+  }
+
   let parsed: any;
   try {
-    // Intenta parsear directamente
-    parsed = JSON.parse(input);
+    parsed = JSON.parse(cleanJson);
   } catch (err: any) {
-    // Si falla, intenta limpiar bloques de markdown ```json ... ```
-    const match = input.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (match && match[1]) {
-      try {
-        parsed = JSON.parse(match[1]);
-      } catch (innerErr: any) {
-        return { success: false, error: `Error de sintaxis JSON: ${innerErr.message}` };
-      }
-    } else {
-      return { success: false, error: `Error de sintaxis JSON: ${err.message}` };
-    }
+    return { success: false, error: `Error de formato JSON: ${err.message}. Verifica que no haya comas de más o comillas faltantes.` };
   }
 
   try {
@@ -237,7 +453,6 @@ export function parseMealJson(input: string): ParseResult {
     let foodsList: any[] = [];
 
     if (Array.isArray(parsed)) {
-      // Es un arreglo directo de alimentos
       foodsList = parsed;
     } else if (typeof parsed === 'object' && parsed !== null) {
       mealName = parsed.name || parsed.nombre || parsed.title || parsed.titulo || 'Comida Registrada';
@@ -253,12 +468,10 @@ export function parseMealJson(input: string): ParseResult {
       time = parsed.time || parsed.hora || nowTime;
       notes = parsed.notes || parsed.notas || parsed.descripcion || '';
 
-      // Alimentos pueden estar en .foods, .alimentos, .items, .ingredientes, .ingredients
       const candidateFoods = parsed.foods || parsed.alimentos || parsed.items || parsed.ingredients || parsed.ingredientes;
       if (Array.isArray(candidateFoods)) {
         foodsList = candidateFoods;
       } else if (parsed.calories !== undefined || parsed.protein !== undefined) {
-        // Es un solo alimento o resumen directo
         foodsList = [parsed];
       }
     } else {
@@ -266,13 +479,13 @@ export function parseMealJson(input: string): ParseResult {
     }
 
     if (foodsList.length === 0) {
-      return { success: false, error: 'No se encontraron alimentos en el JSON. Asegúrate de incluir la lista de ingredientes o alimentos.' };
+      return { success: false, error: 'No se encontraron alimentos en el JSON. Asegúrate de incluir la lista de ingredientes.' };
     }
 
-    // Normalizar alimentos
+    // Normalizar alimentos y limpiar unidades
     const foods: FoodItem[] = foodsList.map((item, idx) => normalizeFoodItem(item, idx));
 
-    // Sumar totales
+    // Sumar totales reales de los ingredientes
     let totalCalories = 0;
     let totalProtein = 0;
     let totalCarbs = 0;
@@ -297,13 +510,28 @@ export function parseMealJson(input: string): ParseResult {
       }
     }
 
-    // Si la IA devolvió totalNutrients calculado a nivel plato, fusionar con prioridad
-    if (typeof parsed === 'object' && parsed !== null && parsed.totalNutrients) {
-      const normalizedAiTotals = normalizeNutrients(parsed.totalNutrients);
-      for (const [k, v] of Object.entries(normalizedAiTotals)) {
-        const key = k as keyof Micronutrients;
-        if (typeof v === 'number' && !isNaN(v)) {
-          totalNutrients[key] = v;
+    // Si la IA declaró totales en la raíz y la suma de alimentos es cero, usar los declarados
+    if (typeof parsed === 'object' && parsed !== null) {
+      const declaredCal = safeNumber(parsed.totalCalories ?? parsed.calories ?? parsed.calorias ?? parsed.kcal);
+      const declaredProt = safeNumber(parsed.totalProtein ?? parsed.protein ?? parsed.proteina);
+      const declaredCarbs = safeNumber(parsed.totalCarbs ?? parsed.carbs ?? parsed.carbohidratos);
+      const declaredFat = safeNumber(parsed.totalFat ?? parsed.fat ?? parsed.grasa);
+      const declaredFiber = safeNumber(parsed.totalFiber ?? parsed.fiber ?? parsed.fibra);
+
+      if (totalCalories === 0 && declaredCal > 0) totalCalories = declaredCal;
+      if (totalProtein === 0 && declaredProt > 0) totalProtein = declaredProt;
+      if (totalCarbs === 0 && declaredCarbs > 0) totalCarbs = declaredCarbs;
+      if (totalFat === 0 && declaredFat > 0) totalFat = declaredFat;
+      if (totalFiber === 0 && declaredFiber > 0) totalFiber = declaredFiber;
+
+      // Fusionar micronutrientes declarados a nivel raíz
+      if (parsed.totalNutrients) {
+        const normalizedAiTotals = normalizeNutrients(parsed.totalNutrients);
+        for (const [k, v] of Object.entries(normalizedAiTotals)) {
+          const key = k as keyof Micronutrients;
+          if (typeof v === 'number' && !isNaN(v)) {
+            totalNutrients[key] = v;
+          }
         }
       }
     }
@@ -336,7 +564,15 @@ export function parseMealJson(input: string): ParseResult {
       updatedAt: Date.now()
     };
 
-    return { success: true, meal };
+    const mathReport = verifyMealMath(meal, typeof parsed === 'object' ? {
+      calories: safeNumber(parsed.totalCalories ?? parsed.calories),
+      protein: safeNumber(parsed.totalProtein ?? parsed.protein),
+      carbs: safeNumber(parsed.totalCarbs ?? parsed.carbs),
+      fat: safeNumber(parsed.totalFat ?? parsed.fat),
+      fiber: safeNumber(parsed.totalFiber ?? parsed.fiber)
+    } : undefined);
+
+    return { success: true, meal, mathReport };
   } catch (err: any) {
     return { success: false, error: `Error procesando datos nutricionales: ${err.message}` };
   }

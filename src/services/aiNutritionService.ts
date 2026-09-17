@@ -51,7 +51,9 @@ export const GEMINI_FALLBACK_CHAIN = [
   'gemini-2.5-flash-lite', // 1. Flash Lite 2.5 (Latencia mínima)
   'gemini-flash-latest',   // 2. Flash Latest
   'gemini-2.5-flash',      // 3. Flash 2.5 Producción
-  'gemini-3.7-flash'       // 4. Flash 3.7
+  'gemini-3.7-flash',      // 4. Flash 3.7
+  'gemini-2.0-flash',      // 5. Flash 2.0 Multimodal
+  'gemini-1.5-flash'       // 6. Flash 1.5 Respaldo Universal
 ];
 
 export const getStoredDeepSeekModel = (): string => {
@@ -112,8 +114,14 @@ REGLAS FUNDAMENTALES DE EXACTITUD Y VERACIDAD NUTRICIONAL:
      * sugar_g: Azúcares simples en gramos.
    - Minerales: iron_mg, magnesium_mg, potassium_mg, calcium_mg, zinc_mg, sodium_mg, phosphorus_mg, selenium_mcg.
    - Vitaminas: vitamin_c_mg, vitamin_d_iu, vitamin_a_mcg, vitamin_b12_mcg, vitamin_b6_mg, folate_mcg, vitamin_e_mg, vitamin_k_mcg.
+   - Suplementos & Estimulantes:
+     * caffeine_mg: Miligramos de cafeína (OBLIGATORIO si hay café, espresso, té verde/negro, bebidas energéticas, refrescos cola o suplementos pre-entreno).
+     * creatine_g: Gramos de creatina pura (ej: 5g).
 
 2. TABLA CANÓNICA BASE DE PRODUCTOS HABITUALES (MÁXIMA PRIORIDAD):
+   * Café Espresso (1 shot / ~30ml): 2 kcal | 0.1g Proteína | 0.2g Carbos | 0g Grasa | 65mg Cafeína (caffeine_mg: 65).
+   * Café Americano / Filtrado (1 taza / 240ml): 5 kcal | 0.3g Proteína | 0.5g Carbos | 0g Grasa | 100mg Cafeína (caffeine_mg: 100).
+   * Creatina Monohidratada Creapure (1 scoop / 5g): 0 kcal | 0g Proteína | 0g Carbos | 0g Grasa | 5g Creatina (creatine_g: 5).
    * Proteína Whey Bulk Power Vanilla S'mores (1 scoop / 30g): 120 kcal | 22g Proteína | 2g Carbos | 1.5g Grasa | 130mg Calcio | 150mg Potasio | 120mg Sodio.
    * Leche Alpura Proteína / Pro Deslactosada (1 vaso / 240ml): 110 kcal | 12g Proteína | 8.6g Carbos | 1.8g Grasa (1.1g Sat) | 8mg Colesterol | 360mg Calcio | 120 UI Vit D | 380mg Potasio | 120mg Sodio. (Para 350ml: 175 kcal | 24.5g P | 11.2g C | 3.5g F).
    * Atún Dolores en Agua drenado (1 lata / 100g drenado): 96 kcal | 22g Proteína | 0g Carbos | 0.8g Grasa | 260mg Sodio | 250mg Potasio | 65mcg Selenio | 2.5mcg B12.
@@ -127,7 +135,6 @@ REGLAS FUNDAMENTALES DE EXACTITUD Y VERACIDAD NUTRICIONAL:
    * Copos de Avena Integral (30g): 115 kcal | 4g Proteína | 20g Carbos | 2g Grasa | 3.2g Fibra | 42mg Magnesio.
    * Huevo entero fresco (2 piezas / ~100g): 144 kcal | 12.6g Proteína | 0.8g Carbos | 9.6g Grasa (3.1g Sat, 3.8g Mono, 1.4g Poli, 0.3g Omega3) | 372mg Colesterol | 294mg Colina | 82 UI Vit D | 1.8mg Hierro | 140mg Sodio.
    * Clara de huevo pasteurizada (50g / ~1.5 claras): 26 kcal | 5.5g Proteína | 0.4g Carbos | 0.1g Grasa | 0mg Colesterol | 83mg Sodio.
-   * Creatina Monohidratada Creapure (5g): 0 kcal, 0g grasa, 0g carbos.
    * Citrato de Magnesio (400mg): 0 kcal, 400mg magnesio elemental.
    * Vitamina C / Ácido Ascórbico (400-500mg): 0 kcal, 400-500mg vit C.
 
@@ -181,6 +188,8 @@ ESTRUCTURA DE RESPUESTA JSON ESTRICTA:
           "folate_mcg": número,
           "vitamin_e_mg": número,
           "vitamin_k_mcg": número,
+          "caffeine_mg": número,
+          "creatine_g": número,
           "selenium_mcg": número,
           "phosphorus_mg": número
         }
@@ -195,6 +204,8 @@ ESTRUCTURA DE RESPUESTA JSON ESTRICTA:
       "cholesterol_mg": número,
       "sugar_g": número,
       "choline_mg": número,
+      "caffeine_mg": número,
+      "creatine_g": número,
       "iron_mg": número,
       "magnesium_mg": número,
       "potassium_mg": número,

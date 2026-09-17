@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Clock, Trash2, Copy, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Clock, Trash2, Copy, ChevronDown, ChevronUp, Check, Edit3, BookmarkPlus } from 'lucide-react';
 import { Meal, MealType } from '../../types/nutrition.types';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { FoodItemsList } from '../nutrition/FoodItemsList';
 import { dbService } from '../../db/dbService';
 import { getSmartFoodEmoji } from '../../utils/foodEmoji';
+import { MealEditModal } from './MealEditModal';
 
 interface MealCardProps {
   meal: Meal;
@@ -24,7 +25,9 @@ const MEAL_BADGE_MAP: Record<MealType, { label: string; variant: 'emerald' | 'am
 export const MealCard: React.FC<MealCardProps> = ({ meal, onDeleted, onReuseJson }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [copiedJson, setCopiedJson] = useState(false);
+  const [savedAsRecipe, setSavedAsRecipe] = useState(false);
 
   const badgeInfo = MEAL_BADGE_MAP[meal.mealType] || MEAL_BADGE_MAP.other;
   const foodEmoji = meal.emoji || getSmartFoodEmoji(meal.name, meal.mealType);
@@ -41,6 +44,29 @@ export const MealCard: React.FC<MealCardProps> = ({ meal, onDeleted, onReuseJson
     navigator.clipboard.writeText(jsonStr);
     setCopiedJson(true);
     setTimeout(() => setCopiedJson(false), 2000);
+  };
+
+  const handleSaveAsRecipe = async () => {
+    try {
+      await dbService.saveRecipe({
+        id: `rec_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        name: meal.name,
+        category: meal.mealType,
+        servings: 1,
+        foods: meal.foods,
+        totalCalories: meal.totalCalories,
+        totalProtein: meal.totalProtein,
+        totalCarbs: meal.totalCarbs,
+        totalFat: meal.totalFat,
+        totalFiber: meal.totalFiber,
+        totalNutrients: meal.totalNutrients,
+        createdAt: Date.now()
+      });
+      setSavedAsRecipe(true);
+      setTimeout(() => setSavedAsRecipe(false), 2500);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -65,29 +91,8 @@ export const MealCard: React.FC<MealCardProps> = ({ meal, onDeleted, onReuseJson
             </div>
             <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{meal.name}</h4>
             <p className="text-[10px] sm:text-[11px] text-slate-500 truncate">
-              {meal.foods.length} alimento{meal.foods.length !== 1 ? 's' : ''} registrado{meal.foods.length !== 1 ? 's' : ''}
+              {meal.foods.length} ingrediente{meal.foods.length !== 1 ? 's' : ''} registrado{meal.foods.length !== 1 ? 's' : ''}
             </p>
-
-            {/* Biofeedback Chips si existen */}
-            {meal.biofeedback && (meal.biofeedback.satiety || meal.biofeedback.digestion || meal.biofeedback.energy) && (
-              <div className="flex items-center gap-1.5 flex-wrap pt-1.5">
-                {meal.biofeedback.satiety && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">
-                    {meal.biofeedback.satiety === 'light' ? '🪶 Ligero' : meal.biofeedback.satiety === 'satisfied' ? '😊 Saciado' : meal.biofeedback.satiety === 'full' ? '🫄 Lleno' : '😮‍💨 Pesado'}
-                  </span>
-                )}
-                {meal.biofeedback.digestion && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200 font-medium">
-                    {meal.biofeedback.digestion === 'great' ? '✨ Digestión Top' : meal.biofeedback.digestion === 'normal' ? '👍 Normal' : meal.biofeedback.digestion === 'heavy' ? '⚠️ Pesadez' : meal.biofeedback.digestion === 'bloated' ? '💨 Gases' : '🔥 Acidez'}
-                  </span>
-                )}
-                {meal.biofeedback.energy && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-medium">
-                    {meal.biofeedback.energy === 'energized' ? '⚡ Energía Alta' : meal.biofeedback.energy === 'normal' ? '👌 Normal' : meal.biofeedback.energy === 'sleepy' ? '🥱 Sueño' : '🔋 Cansado'}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
@@ -121,15 +126,36 @@ export const MealCard: React.FC<MealCardProps> = ({ meal, onDeleted, onReuseJson
           )}
         </button>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          {/* Botón Editar Comida */}
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            title="Editar nombre, hora, ingredientes o macros"
+            className="px-2 py-1 rounded-lg text-[11px] font-bold text-slate-700 hover:text-emerald-800 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 transition-colors flex items-center gap-1"
+          >
+            <Edit3 size={13} className="text-emerald-700" />
+            <span>Editar</span>
+          </button>
+
+          {/* Guardar en Recetas */}
+          <button
+            onClick={handleSaveAsRecipe}
+            title="Guardar en tu Banco de Recetas"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+          >
+            {savedAsRecipe ? <Check size={14} className="text-emerald-700" /> : <BookmarkPlus size={14} />}
+          </button>
+
+          {/* Copiar JSON */}
           <button
             onClick={handleCopyJson}
             title="Copiar JSON original de esta comida"
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
           >
             {copiedJson ? <Check size={14} className="text-emerald-700" /> : <Copy size={14} />}
           </button>
 
+          {/* Borrar */}
           {isConfirmingDelete ? (
             <div className="flex items-center gap-1 bg-rose-50 p-1 rounded-xl border border-rose-200">
               <span className="text-[10px] text-rose-800 font-bold px-1">¿Borrar?</span>
@@ -198,6 +224,13 @@ export const MealCard: React.FC<MealCardProps> = ({ meal, onDeleted, onReuseJson
           <FoodItemsList foods={meal.foods} />
         </div>
       )}
+
+      {/* Modal de edición */}
+      <MealEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        meal={meal}
+      />
     </Card>
   );
 };

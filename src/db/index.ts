@@ -35,7 +35,7 @@ export const db = new NutriLensDatabase();
 export async function initializeDatabase(): Promise<void> {
   try {
     const existingGoals = await db.goals.get('user_default_goals');
-    if (!existingGoals || existingGoals.calories === 2200 || existingGoals.profile?.targetWeightKg === 71.0) {
+    if (!existingGoals) {
       await db.goals.put(DEFAULT_NUTRITION_GOALS);
     } else {
       await db.goals.put({
@@ -57,11 +57,22 @@ export async function initializeDatabase(): Promise<void> {
       });
     }
 
-    // Inicializar o enriquecer alimentos canónicos
+    // Inicializar o enriquecer alimentos canónicos con perfil lipídico y micronutrientes
     for (const food of DEFAULT_CANONICAL_FOODS) {
       const existing = await db.canonicalFoods.get(food.id);
       if (!existing) {
         await db.canonicalFoods.put(food);
+      } else if (food.nutrients && Object.keys(food.nutrients).length > 0) {
+        const mergedNutrients: any = { ...food.nutrients, ...(existing.nutrients || {}) };
+        for (const [k, v] of Object.entries(food.nutrients)) {
+          if (existing.nutrients?.[k as keyof typeof existing.nutrients] === undefined || existing.nutrients?.[k as keyof typeof existing.nutrients] === 0) {
+            mergedNutrients[k] = v;
+          }
+        }
+        await db.canonicalFoods.put({
+          ...existing,
+          nutrients: mergedNutrients
+        });
       }
     }
   } catch (error) {

@@ -19,7 +19,9 @@ export const DEFAULT_NUTRITION_GOALS: NutritionGoals = {
     currentWaistInches: 38.5,
     targetWaistInches: 31.5,
     targetWaterLiters: 3.5,
-    creatineDailyGrams: 5
+    creatineDailyGrams: 5,
+    caffeineDailyMaxMg: 400,
+    caffeineCutoffHour: 15
   },
   microGoals: {
     vitamin_a_mcg: 900,
@@ -51,7 +53,8 @@ REGLAS ESTRICTAS:
 2. ES OBLIGATORIO calcular y devolver los 24 nutrientes y lípidos tanto en cada ingrediente como en "totalNutrients" sin omitir ninguno:
    - Lípidos: saturated_fat_g, monounsaturated_fat_g, polyunsaturated_fat_g, trans_fat_g, omega3_g, cholesterol_mg, choline_mg
    - Vitaminas: vitamin_c_mg, vitamin_d_iu, vitamin_a_mcg, vitamin_b12_mcg, vitamin_b6_mg, folate_mcg, vitamin_e_mg, vitamin_k_mcg
-   - Minerales y otros: iron_mg, magnesium_mg, potassium_mg, calcium_mg, zinc_mg, sodium_mg, phosphorus_mg, selenium_mcg, sugar_g
+    - Minerales y otros: iron_mg, magnesium_mg, potassium_mg, calcium_mg, zinc_mg, sodium_mg, phosphorus_mg, selenium_mcg, sugar_g
+    - Suplementos & Estimulantes: caffeine_mg (MANDATORIO si hay café, espresso, té, bebidas energéticas, refrescos de cola o pre-entrenos), creatine_g (si hay creatina)
 3. Responde ÚNICA Y EXCLUSIVAMENTE con este bloque JSON válido (sin texto extra):
 
 {
@@ -84,6 +87,8 @@ REGLAS ESTRICTAS:
         "cholesterol_mg": 0,
         "choline_mg": 0,
         "sugar_g": 0,
+        "caffeine_mg": 0,
+        "creatine_g": 0,
         "iron_mg": 0,
         "magnesium_mg": 0,
         "potassium_mg": 0,
@@ -112,6 +117,8 @@ REGLAS ESTRICTAS:
     "cholesterol_mg": 0,
     "choline_mg": 0,
     "sugar_g": 0,
+    "caffeine_mg": 0,
+    "creatine_g": 0,
     "iron_mg": 0,
     "magnesium_mg": 0,
     "potassium_mg": 0,
@@ -649,7 +656,12 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       calcium_mg: 130,
       potassium_mg: 150,
       sodium_mg: 120,
-      iron_mg: 0.5
+      iron_mg: 0.5,
+      saturated_fat_g: 0.8,
+      monounsaturated_fat_g: 0.4,
+      polyunsaturated_fat_g: 0.2,
+      trans_fat_g: 0,
+      cholesterol_mg: 35
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -676,6 +688,9 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       vitamin_a_mcg: 180,
       vitamin_b12_mcg: 1.2,
       saturated_fat_g: 1.1,
+      monounsaturated_fat_g: 0.5,
+      polyunsaturated_fat_g: 0.1,
+      trans_fat_g: 0,
       cholesterol_mg: 8
     },
     createdAt: Date.now(),
@@ -700,7 +715,12 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       potassium_mg: 250,
       selenium_mcg: 65,
       vitamin_b12_mcg: 2.5,
-      iron_mg: 1.3
+      iron_mg: 1.3,
+      saturated_fat_g: 0.2,
+      monounsaturated_fat_g: 0.1,
+      polyunsaturated_fat_g: 0.3,
+      omega3_g: 0.25,
+      cholesterol_mg: 30
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -725,9 +745,11 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       iron_mg: 1.0,
       magnesium_mg: 29,
       zinc_mg: 1.0,
+      phosphorus_mg: 220,
       saturated_fat_g: 1.0,
       monounsaturated_fat_g: 1.2,
       polyunsaturated_fat_g: 0.8,
+      trans_fat_g: 0,
       cholesterol_mg: 85,
       choline_mg: 85
     },
@@ -758,6 +780,7 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       saturated_fat_g: 0.2,
       monounsaturated_fat_g: 0.4,
       polyunsaturated_fat_g: 0.7,
+      trans_fat_g: 0,
       sugar_g: 1.2
     },
     createdAt: Date.now(),
@@ -781,7 +804,12 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       calcium_mg: 190,
       potassium_mg: 240,
       sodium_mg: 65,
-      vitamin_b12_mcg: 0.9
+      vitamin_b12_mcg: 0.9,
+      saturated_fat_g: 0,
+      monounsaturated_fat_g: 0,
+      polyunsaturated_fat_g: 0,
+      trans_fat_g: 0,
+      sugar_g: 5.0
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -804,9 +832,13 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       vitamin_e_mg: 1.3,
       magnesium_mg: 25,
       potassium_mg: 105,
+      iron_mg: 0.3,
+      zinc_mg: 0.4,
       saturated_fat_g: 1.5,
       monounsaturated_fat_g: 4.0,
-      polyunsaturated_fat_g: 2.0
+      polyunsaturated_fat_g: 2.0,
+      trans_fat_g: 0,
+      sugar_g: 0.8
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -829,7 +861,15 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       vitamin_e_mg: 2.6,
       magnesium_mg: 27,
       calcium_mg: 26,
-      potassium_mg: 73
+      potassium_mg: 73,
+      iron_mg: 0.4,
+      zinc_mg: 0.3,
+      phosphorus_mg: 48,
+      saturated_fat_g: 0.4,
+      monounsaturated_fat_g: 3.2,
+      polyunsaturated_fat_g: 1.2,
+      trans_fat_g: 0,
+      sugar_g: 0.4
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -852,7 +892,10 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       iron_mg: 1.2,
       magnesium_mg: 20,
       zinc_mg: 0.8,
-      potassium_mg: 55
+      potassium_mg: 55,
+      saturated_fat_g: 0.1,
+      monounsaturated_fat_g: 0.1,
+      polyunsaturated_fat_g: 0.1
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -875,7 +918,12 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       potassium_mg: 170,
       vitamin_e_mg: 0.7,
       folate_mcg: 28,
-      magnesium_mg: 10
+      magnesium_mg: 10,
+      saturated_fat_g: 0.8,
+      monounsaturated_fat_g: 4.2,
+      polyunsaturated_fat_g: 0.7,
+      trans_fat_g: 0,
+      omega3_g: 0.04
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -898,7 +946,10 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
       magnesium_mg: 42,
       zinc_mg: 1.2,
       iron_mg: 1.4,
-      potassium_mg: 110
+      potassium_mg: 110,
+      saturated_fat_g: 0.4,
+      monounsaturated_fat_g: 0.7,
+      polyunsaturated_fat_g: 0.7
     },
     createdAt: Date.now(),
     updatedAt: Date.now()
@@ -917,7 +968,9 @@ export const DEFAULT_CANONICAL_FOODS: any[] = [
     category: 'supplements',
     sourceType: 'manual',
     notes: '5g diarios para saturación muscular e hidratación celular',
-    nutrients: {},
+    nutrients: {
+      creatine_g: 5.0
+    },
     createdAt: Date.now(),
     updatedAt: Date.now()
   },

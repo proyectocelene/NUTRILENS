@@ -7,7 +7,8 @@ import {
   Check, 
   Bot, 
   AlertCircle, 
-  Wand2 
+  Wand2,
+  Edit3
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
@@ -15,6 +16,7 @@ import { Badge } from '../common/Badge';
 import { CanonicalFood } from '../../types/nutrition.types';
 import { MASTER_CANONICAL_FOODS_AI_PROMPT } from '../../db/seedData';
 import { dbService } from '../../db/dbService';
+import { FOOD_EMOJI_PALETTE, getSmartFoodEmoji } from '../../utils/foodEmoji';
 import { awardXp } from '../../services/gamificationService';
 
 interface CanonicalFoodEditModalProps {
@@ -33,6 +35,8 @@ export const CanonicalFoodEditModal: React.FC<CanonicalFoodEditModalProps> = ({
   const [activeTab, setActiveTab] = useState<'visual' | 'json'>('visual');
 
   const [name, setName] = useState('');
+  const [emoji, setEmoji] = useState('🍽️');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [brand, setBrand] = useState('');
   const [servingSize, setServingSize] = useState('100g');
   const [servingGrams, setServingGrams] = useState('100');
@@ -53,9 +57,51 @@ export const CanonicalFoodEditModal: React.FC<CanonicalFoodEditModalProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Cálculos Atwater en vivo
+  const pNum = parseFloat(protein) || 0;
+  const cNum = parseFloat(carbs) || 0;
+  const fNum = parseFloat(fat) || 0;
+  const calNum = parseFloat(calories) || 0;
+  const atwaterCal = Math.round((pNum * 4) + (cNum * 4) + (fNum * 9));
+  const atwaterDiff = Math.abs(atwaterCal - calNum);
+  const isAtwaterBalanced = calNum === 0 || atwaterDiff <= Math.max(10, calNum * 0.15);
+
+  const handleAutoEstimateLipids = () => {
+    const f = parseFloat(fat) || 0;
+    if (f <= 0) return;
+
+    let sat = 0;
+    let mono = 0;
+    let poly = 0;
+
+    const lowerName = name.toLowerCase();
+    if (category === 'fats' || lowerName.includes('almendra') || lowerName.includes('nuez') || lowerName.includes('aguacate') || lowerName.includes('oliva')) {
+      mono = Math.round(f * 0.65 * 10) / 10;
+      poly = Math.round(f * 0.20 * 10) / 10;
+      sat = Math.round(f * 0.15 * 10) / 10;
+    } else if (category === 'dairy' || category === 'protein') {
+      sat = Math.round(f * 0.50 * 10) / 10;
+      mono = Math.round(f * 0.35 * 10) / 10;
+      poly = Math.round(f * 0.15 * 10) / 10;
+    } else {
+      sat = Math.round(f * 0.30 * 10) / 10;
+      mono = Math.round(f * 0.40 * 10) / 10;
+      poly = Math.round(f * 0.30 * 10) / 10;
+    }
+
+    setNutrients(prev => ({
+      ...prev,
+      saturated_fat_g: String(sat),
+      monounsaturated_fat_g: String(mono),
+      polyunsaturated_fat_g: String(poly),
+      trans_fat_g: '0'
+    }));
+  };
+
   useEffect(() => {
     if (food) {
       setName(food.name || '');
+      setEmoji(getSmartFoodEmoji(food.name));
       setBrand(food.brand || '');
       setServingSize(food.servingSize || '100g');
       setServingGrams(String(food.servingGrams || 100));
@@ -406,8 +452,40 @@ export const CanonicalFoodEditModal: React.FC<CanonicalFoodEditModalProps> = ({
             {/* Información Base */}
             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">📦 Datos Comerciales</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div>
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs">
+                <div className="sm:col-span-3">
+                  <label className="font-bold text-slate-700 block mb-1">Emoji</label>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-xl transition-colors"
+                    >
+                      <span>{emoji}</span>
+                      <Edit3 size={12} className="text-slate-400" />
+                    </button>
+
+                    {showEmojiPicker && (
+                      <div className="absolute top-11 left-0 z-50 p-2 bg-white border border-slate-200 rounded-2xl shadow-xl w-60 max-h-48 overflow-y-auto custom-scrollbar grid grid-cols-6 gap-1">
+                        {FOOD_EMOJI_PALETTE.map((e, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setEmoji(e);
+                              setShowEmojiPicker(false);
+                            }}
+                            className="p-1 hover:bg-slate-100 rounded text-base flex items-center justify-center hover:scale-110 transition-transform"
+                          >
+                            {e}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="sm:col-span-5">
                   <label className="font-bold text-slate-700 block mb-1">Nombre del Alimento *</label>
                   <input
                     type="text"
@@ -418,7 +496,7 @@ export const CanonicalFoodEditModal: React.FC<CanonicalFoodEditModalProps> = ({
                     className="w-full p-2 rounded-xl border border-slate-300 bg-white font-medium focus:border-emerald-500"
                   />
                 </div>
-                <div>
+                <div className="sm:col-span-4">
                   <label className="font-bold text-slate-700 block mb-1">Marca Comercial</label>
                   <input
                     type="text"
@@ -529,13 +607,32 @@ export const CanonicalFoodEditModal: React.FC<CanonicalFoodEditModalProps> = ({
                   />
                 </div>
               </div>
+
+              {/* Indicador Atwater en vivo */}
+              <div className={`p-2 rounded-xl border text-[11px] font-mono font-bold flex items-center justify-between ${
+                isAtwaterBalanced ? 'bg-emerald-50 text-emerald-900 border-emerald-200' : 'bg-amber-50 text-amber-900 border-amber-200'
+              }`}>
+                <span>📐 Cálculo Atwater ($4P + 4C + 9G$): {atwaterCal} kcal</span>
+                <span>{isAtwaterBalanced ? '✓ Balance Bioquímico Coherente' : `⚠️ Discrepancia de ~${atwaterDiff} kcal con lo declarado`}</span>
+              </div>
             </div>
 
             {/* SECCIÓN 1: PERFIL LIPÍDICO & GRASAS (8 Nutrientes) */}
             <div className="p-3.5 bg-amber-50/50 rounded-2xl border border-amber-200/70 space-y-2.5">
-              <div className="flex items-center gap-1.5 text-amber-900">
-                <span className="text-sm">🫒</span>
-                <h4 className="text-xs font-bold uppercase tracking-wider">Perfil Lipídico, Grasas & Colina (8 Nutrientes)</h4>
+              <div className="flex items-center justify-between flex-wrap gap-2 text-amber-900">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">🫒</span>
+                  <h4 className="text-xs font-bold uppercase tracking-wider">Perfil Lipídico, Grasas & Colina (8 Nutrientes)</h4>
+                </div>
+                {parseFloat(fat) > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleAutoEstimateLipids}
+                    className="text-[11px] px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <Wand2 size={12} /> Auto-Calcular Desglose de {fat}g Grasa
+                  </button>
+                )}
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">

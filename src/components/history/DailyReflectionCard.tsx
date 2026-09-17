@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { MessageSquareHeart, Check, Sparkles, AlertCircle, Save, Flame, Droplets, Zap, ShieldCheck, Bell } from 'lucide-react';
 import { Card } from '../common/Card';
@@ -82,6 +82,8 @@ export const DailyReflectionCard: React.FC<DailyReflectionCardProps> = ({ date, 
       reasonTag: combinedTag,
       reflectionNotes,
       creatineTaken,
+      creatineG: creatineTaken ? (dailyLog?.creatineG || 5) : 0,
+      caffeineMg: dailyLog?.caffeineMg,
       waterMl,
       completedGoals: isGoalsMet
     };

@@ -1,63 +1,98 @@
-﻿export function getSmartFoodEmoji(name: string, fallbackType?: string): string {
-  if (!name) return '🍽️';
-  const text = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+export const FOOD_EMOJI_PALETTE = [
+  // Frutas & Verduras
+  '🍎', '🍏', '🍌', '🍓', '🫐', '🍊', '🍋', '🥑', '🥝', '🍇', '🍉', '🍍', '🍑', '🍒',
+  '🥦', '🥬', '🥗', '🥕', '🥒', '🍅', '🧄', '🧅', '🥔', '🍠', '🌽', '🫒', '🍄',
+  // Proteínas, Carnes & Pescados
+  '🥩', '🍗', '🍖', '🥓', '🍔', '🌭', '🥪', '🌮', '🌯',
+  '🐟', '🍣', '🍤', '🦐', '🦀', '🦞', '🥚', '🍳',
+  // Lácteos & Granos
+  '🥛', '🧀', '🧈', '🍞', '🥖', '🥯', '🥨', '🥞', '🧇', '🥣', '🍚', '🍙', '🍝', '🍜', '🍕',
+  // Frutos Secos & Grasas
+  '🥜', '🌰', '🥥', '🍯',
+  // Bebidas & Suplementos
+  '☕', '🍵', '🥤', '🧃', '🧉', '💧', '💊', '⚡', '🍫'
+];
 
-  // Bebidas isotónicas / Suplementos / Hidratación
-  if (text.includes('powerade') || text.includes('gatorade') || text.includes('electrolit') || text.includes('isotonica') || text.includes('suero')) return '🥤';
-  if (text.includes('creatina') || text.includes('whey') || text.includes('proteina en polvo') || text.includes('suplemento') || text.includes('capsula') || text.includes('vitamina')) return '💊';
-  if (text.includes('agua') || text.includes('mineral')) return '💧';
+export function getSmartFoodEmoji(name: string, fallbackType?: string): string {
+  if (!name || typeof name !== 'string') return '🍽️';
+  
+  // Normalizar: minúsculas, sin acentos
+  const text = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
-  // Sándwiches, Tortas y Panes
-  if (text.includes('sandwich') || text.includes('emparedado') || text.includes('torta') || text.includes('bagel') || text.includes('panini')) return '🥪';
-  if (text.includes('pan') || text.includes('bimbo') || text.includes('tostada') || text.includes('croissant') || text.includes('bolillo')) return '🍞';
+  // Función auxiliar de palabra completa o subfrase
+  const hasWord = (word: string) => {
+    const regex = new RegExp(`(^|[^a-z0-9])${word}([^a-z0-9]|$)`, 'i');
+    return regex.test(text);
+  };
 
-  // Huevos y Desayunos
-  if (text.includes('huevo') || text.includes('clara') || text.includes('omelet') || text.includes('revuelto') || text.includes('estrellado')) return '🍳';
-  if (text.includes('avena') || text.includes('cereal') || text.includes('granola') || text.includes('porridge') || text.includes('bowl')) return '🥣';
-  if (text.includes('pancake') || text.includes('hot cake') || text.includes('waffle') || text.includes('crepa')) return '🥞';
+  const hasAnyWord = (words: string[]) => words.some(w => hasWord(w));
 
-  // Carnes, Aves y Embutidos
-  if (text.includes('pollo') || text.includes('pechuga') || text.includes('alita') || text.includes('muslo')) return '🍗';
-  if (text.includes('carne') || text.includes('res') || text.includes('bistec') || text.includes('arrachera') || text.includes('filete') || text.includes('ribeye')) return '🥩';
-  if (text.includes('hamburguesa') || text.includes('burger')) return '🍔';
-  if (text.includes('pavo') || text.includes('jamon') || text.includes('salchicha') || text.includes('tocino')) return '🥓';
+  // 1. Suplementos, Vitaminas e Hidratación
+  if (hasAnyWord(['creatina', 'creatine', 'whey', 'proteina en polvo', 'suplemento', 'capsula', 'pastilla', 'bcaa', 'glutamina', 'colageno'])) return '💊';
+  if (hasAnyWord(['gatorade', 'powerade', 'electrolit', 'isotonica', 'suero', 'pre-entreno', 'preentreno', 'preworkout'])) return '⚡';
+  if (hasAnyWord(['agua', 'water', 'mineral', 'h2o'])) return '💧';
 
-  // Pescados y Mariscos
-  if (text.includes('atun') || text.includes('salmon') || text.includes('pescado') || text.includes('tilapia') || text.includes('sardina') || text.includes('marisco') || text.includes('camaron')) return '🐟';
-  if (text.includes('sushi') || text.includes('sashimi') || text.includes('poke')) return '🍣';
+  // 2. Frutas (PRIORIDAD ALTA antes de cualquier coincidencia de carne o verdura)
+  if (hasAnyWord(['manzana', 'apple', 'golden', 'gala', 'fuji', 'red delicious'])) return '🍎';
+  if (hasAnyWord(['fresa', 'fresas', 'strawberry', 'frutos rojos', 'arandano', 'arandanos', 'blueberry', 'frambuesa', 'zarzamora', 'berry', 'berries'])) return '🍓';
+  if (hasAnyWord(['platano', 'banana', 'banano', 'guineo'])) return '🍌';
+  if (hasAnyWord(['naranja', 'mandarina', 'toronja', 'citrico', 'orange'])) return '🍊';
+  if (hasAnyWord(['limon', 'lima', 'lemon', 'lime'])) return '🍋';
+  if (hasAnyWord(['kiwi'])) return '🥝';
+  if (hasAnyWord(['uvas', 'uva', 'grape', 'pasas'])) return '🍇';
+  if (hasAnyWord(['sandia', 'watermelon'])) return '🍉';
+  if (hasAnyWord(['pina', 'anana', 'pineapple'])) return '🍍';
+  if (hasAnyWord(['mango', 'papaya', 'melon', 'durazno', 'melocoton', 'ciruela', 'pera'])) return '🍑';
 
-  // Lácteos
-  if (text.includes('leche') || text.includes('alpura') || text.includes('lala') || text.includes('licuado') || text.includes('batido') || text.includes('smoothie')) return '🥛';
-  if (text.includes('queso') || text.includes('panela') || text.includes('cottage') || text.includes('parmesano') || text.includes('mozzarella')) return '🧀';
-  if (text.includes('yogur') || text.includes('yogurt') || text.includes('kefir')) return '🥛';
+  // 3. Verduras y Ensaladas
+  if (hasAnyWord(['aguacate', 'palta', 'avocado', 'guacamole'])) return '🥑';
+  if (hasAnyWord(['tomate', 'jitomate', 'tomato', 'cherrys', 'cherry'])) return '🍅';
+  if (hasAnyWord(['brocoli', 'broccoli', 'coliflor', 'esparrago', 'esparragos'])) return '🥦';
+  if (hasAnyWord(['ensalada', 'salad', 'lechuga', 'espinaca', 'espinacas', 'kale', 'rucula', 'acelga'])) return '🥗';
+  if (hasAnyWord(['zanahoria', 'zanahorias', 'carrot', 'calabacita', 'calabacin', 'zucchini', 'pepino', 'cucumber'])) return '🥕';
+  if (hasAnyWord(['papa', 'patata', 'patatas', 'papas', 'camote', 'boniato', 'sweet potato'])) return '🥔';
+  if (hasAnyWord(['cebolla', 'onion', 'pimiento', 'chile', 'jalapeno', 'morron', 'garlic', 'ajo'])) return '🧅';
+  if (hasAnyWord(['champiñon', 'champinon', 'champiñones', 'hongo', 'seta', 'mushroom'])) return '🍄';
+  if (hasAnyWord(['aceituna', 'aceitunas', 'oliva', 'olivas', 'aceite de oliva'])) return '🫒';
 
-  // Cafés e Infusiones
-  if (text.includes('cafe') || text.includes('espresso') || text.includes('cappuccino') || text.includes('latte') || text.includes('americano')) return '☕';
-  if (text.includes('te') || text.includes('matcha') || text.includes('infusion')) return '🍵';
+  // 4. Frutos Secos, Semillas y Grasas
+  if (hasAnyWord(['almendra', 'almendras', 'almond', 'nuez', 'nueces', 'cacahuate', 'cacahuates', 'mani', 'peanut', 'mantequilla de mani', 'peanut butter', 'anacardo', 'pistacho', 'avellana', 'chia', 'lino', 'sesamo', 'semilla', 'semillas'])) return '🥜';
+  if (hasAnyWord(['aceite', 'mantequilla', 'ghee'])) return '🧈';
 
-  // Tacos, Comida Mexicana y Pastas
-  if (text.includes('taco') || text.includes('quesadilla') || text.includes('burrito') || text.includes('fajita')) return '🌮';
-  if (text.includes('arroz') || text.includes('rice')) return '🍚';
-  if (text.includes('pasta') || text.includes('espagueti') || text.includes('fideo') || text.includes('macarron') || text.includes('ramen')) return '🍝';
-  if (text.includes('pizza')) return '🍕';
+  // 5. Huevos y Desayunos
+  if (hasAnyWord(['huevo', 'huevos', 'egg', 'eggs', 'clara', 'claras', 'omelet', 'omelette', 'revuelto', 'estrellado', 'poche'])) return '🍳';
+  if (hasAnyWord(['avena', 'oats', 'oatmeal', 'cereal', 'granola', 'porridge', 'musli', 'quinoa', 'chia pudding'])) return '🥣';
+  if (hasAnyWord(['pancake', 'pancakes', 'hotcake', 'hotcakes', 'waffle', 'waffles', 'crepa', 'crepe'])) return '🥞';
 
-  // Grasas, Frutos Secos y Verduras
-  if (text.includes('aguacate') || text.includes('guacamole')) return '🥑';
-  if (text.includes('aceite') || text.includes('oliva')) return '🫒';
-  if (text.includes('nuez') || text.includes('almendra') || text.includes('cacahuate') || text.includes('mani') || text.includes('semilla')) return '🥜';
-  if (text.includes('ensalada') || text.includes('lechuga') || text.includes('espinaca') || text.includes('verde')) return '🥗';
-  if (text.includes('brocoli') || text.includes('coliflor') || text.includes('esparrago')) return '🥦';
-  if (text.includes('zanahoria') || text.includes('calabacita') || text.includes('pepino')) return '🥕';
-  if (text.includes('papa') || text.includes('patata') || text.includes('camote')) return '🥔';
+  // 6. Cafés e Infusiones (Usando palabra exacta para no colisionar con 'tomate', 'aceite', etc.)
+  if (hasAnyWord(['cafe', 'coffee', 'espresso', 'cappuccino', 'latte', 'americano', 'macchiato', 'moka', 'cold brew'])) return '☕';
+  if (hasAnyWord(['te', 'tea', 'matcha', 'infusion', 'manzanilla', 'chai', 'yerba mate', 'mate'])) return '🍵';
 
-  // Frutas y Postres
-  if (text.includes('platano') || text.includes('banana')) return '🍌';
-  if (text.includes('manzana')) return '🍎';
-  if (text.includes('fresa') || text.includes('frutos rojos') || text.includes('arandano') || text.includes('berry')) return '🍓';
-  if (text.includes('naranja') || text.includes('mandarina') || text.includes('citrico')) return '🍊';
-  if (text.includes('chocolate') || text.includes('cacao')) return '🍫';
+  // 7. Carnes, Aves y Embutidos (Con límites de palabra estrictos para evitar 'fresca' o 'aderezo')
+  if (hasAnyWord(['pollo', 'chicken', 'pechuga', 'alita', 'alitas', 'muslo', 'pavo', 'turkey'])) return '🍗';
+  if (hasAnyWord(['res', 'carne', 'carne de res', 'beef', 'steak', 'bistec', 'bife', 'arrachera', 'filete', 'ribeye', 'sirloin', 'picaña', 'vacio', 'ternera', 'costilla', 'cordero'])) return '🥩';
+  if (hasAnyWord(['hamburguesa', 'burger', 'cheeseburger'])) return '🍔';
+  if (hasAnyWord(['jamon', 'ham', 'tocino', 'bacon', 'salchicha', 'chorizo', 'pepperoni', 'lomo'])) return '🥓';
 
-  // Fallback por tipo de comida
+  // 8. Pescados y Mariscos
+  if (hasAnyWord(['atun', 'tuna', 'salmon', 'pescado', 'fish', 'tilapia', 'merluza', 'bacalao', 'sardina', 'sardinas', 'marisco', 'camaron', 'camarones', 'shrimp', 'pulpo', 'calamar'])) return '🐟';
+  if (hasAnyWord(['sushi', 'sashimi', 'poke', 'nigiri', 'maki', 'roll'])) return '🍣';
+
+  // 9. Lácteos y Quesos
+  if (hasAnyWord(['leche', 'milk', 'alpura', 'lala', 'licuado', 'batido', 'smoothie', 'shake'])) return '🥛';
+  if (hasAnyWord(['queso', 'cheese', 'panela', 'cottage', 'parmesano', 'mozzarella', 'fresco', 'oaxaca', 'gouda', 'cheddar'])) return '🧀';
+  if (hasAnyWord(['yogur', 'yogurt', 'yoghurt', 'kefir', 'fage', 'chobani', 'griego'])) return '🥛';
+
+  // 10. Panadería, Granos, Pastas y Comidas
+  if (hasAnyWord(['sandwich', 'sandwiches', 'emparedado', 'torta', 'panini', 'bagel', 'wrap'])) return '🥪';
+  if (hasAnyWord(['pan', 'bread', 'bimbo', 'tostada', 'tostadas', 'croissant', 'bolillo', 'telera', 'baguette', 'pita'])) return '🍞';
+  if (hasAnyWord(['taco', 'tacos', 'quesadilla', 'quesadillas', 'burrito', 'burritos', 'fajita', 'fajitas', 'enchilada', 'flauta'])) return '🌮';
+  if (hasAnyWord(['arroz', 'rice', 'risotto', 'paella'])) return '🍚';
+  if (hasAnyWord(['pasta', 'espagueti', 'spaghetti', 'fideo', 'macarron', 'lasana', 'lasagna', 'ramen', 'noodles', 'tallarines'])) return '🍝';
+  if (hasAnyWord(['pizza'])) return '🍕';
+  if (hasAnyWord(['chocolate', 'cacao', 'brownie', 'dulce', 'galleta', 'cookie'])) return '🍫';
+
+  // Fallbacks por tipo de comida
   if (fallbackType === 'breakfast') return '🍳';
   if (fallbackType === 'lunch') return '🥗';
   if (fallbackType === 'dinner') return '🍲';
