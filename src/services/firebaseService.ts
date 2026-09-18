@@ -124,27 +124,13 @@ export const getStoredFirebaseConfig = (): FirebaseConfig => {
     const stored = localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (parsed && parsed.apiKey && parsed.projectId && parsed.projectId !== 'coachv2-app') {
+      if (parsed && parsed.projectId === 'nutrilens-fce87' && parsed.apiKey) {
         return parsed;
-      } else {
-        localStorage.removeItem(LOCAL_STORAGE_FIREBASE_KEY);
       }
+      localStorage.removeItem(LOCAL_STORAGE_FIREBASE_KEY);
     }
   } catch (err) {
-    console.error('Error leyendo config de Firebase:', err);
-  }
-  const envKey = (import.meta as any).env?.VITE_FIREBASE_API_KEY;
-  const envProject = (import.meta as any).env?.VITE_FIREBASE_PROJECT_ID;
-  const envAppId = (import.meta as any).env?.VITE_FIREBASE_APP_ID;
-  if (envKey && envProject && envAppId) {
-    return {
-      apiKey: envKey,
-      authDomain: (import.meta as any).env?.VITE_FIREBASE_AUTH_DOMAIN || `${envProject}.firebaseapp.com`,
-      projectId: envProject,
-      storageBucket: (import.meta as any).env?.VITE_FIREBASE_STORAGE_BUCKET || `${envProject}.appspot.com`,
-      messagingSenderId: (import.meta as any).env?.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-      appId: envAppId
-    };
+    localStorage.removeItem(LOCAL_STORAGE_FIREBASE_KEY);
   }
   return DEFAULT_FIREBASE_CONFIG;
 };
