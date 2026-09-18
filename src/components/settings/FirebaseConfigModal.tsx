@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Database, Check, AlertCircle, Save, Key, RefreshCw, Cloud, Zap } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
@@ -101,8 +101,10 @@ export const FirebaseConfigModal: React.FC<FirebaseConfigModalProps> = ({
       if (ok) {
         const syncResult = await forceSyncAllWithCloud();
         setTestStatus({
-          type: 'success',
-          message: `¡Conectado exitosamente con Firebase Firestore! ${syncResult.message}`
+          type: syncResult.success ? 'success' : 'error',
+          message: syncResult.success 
+            ? `¡Conectado exitosamente con Firebase Firestore! ${syncResult.message}`
+            : `Aviso de Firestore: ${syncResult.message}`
         });
 
         if (onConfigSaved) onConfigSaved();
