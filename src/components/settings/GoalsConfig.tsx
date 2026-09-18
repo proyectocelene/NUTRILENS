@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Target, Save, Check, RefreshCw, FileCode, Sliders } from 'lucide-react';
 import { NutritionGoals } from '../../types/nutrition.types';
 import { DEFAULT_NUTRITION_GOALS } from '../../db/seedData';
@@ -49,12 +49,50 @@ export const GoalsConfig: React.FC<GoalsConfigProps> = ({ goals, onSaveGoals }) 
     }
   };
 
-  const handleResetDefaults = () => {
-    setFormData(DEFAULT_NUTRITION_GOALS);
+  const handleResetAndSaveAdonis = async () => {
+    setIsSaving(true);
+    try {
+      setFormData(DEFAULT_NUTRITION_GOALS);
+      await onSaveGoals(DEFAULT_NUTRITION_GOALS);
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const hasDifferentFromOfficial = formData.calories !== DEFAULT_NUTRITION_GOALS.calories || 
+    formData.protein !== DEFAULT_NUTRITION_GOALS.protein ||
+    formData.carbs !== DEFAULT_NUTRITION_GOALS.carbs ||
+    formData.fat !== DEFAULT_NUTRITION_GOALS.fat;
 
   return (
     <div className="space-y-4">
+      {/* Banner de Sincronización con el Plan Programado de la PWA */}
+      {hasDifferentFromOfficial && (
+        <div className="p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div>
+            <div className="flex items-center gap-1.5 font-bold text-xs text-emerald-950">
+              <span>🎯 Protocolo Adonis Programado (1,950 kcal • 170g P • 67kg Target)</span>
+            </div>
+            <p className="text-[11px] text-emerald-800">
+              Tus metas actuales difieren del plan oficial de la PWA. Puedes sincronizarlas con 1 clic.
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="primary"
+            onClick={handleResetAndSaveAdonis}
+            disabled={isSaving}
+            icon={<RefreshCw size={13} className={isSaving ? 'animate-spin' : ''} />}
+            className="text-xs shrink-0 self-start sm:self-auto"
+          >
+            Aplicar Plan Adonis Oficial
+          </Button>
+        </div>
+      )}
+
       {/* Selector de Modo: Visual vs JSON / IA */}
       <div className="flex items-center justify-between bg-white p-1.5 rounded-2xl border border-slate-200 shadow-2xs">
         <div className="flex items-center gap-1">
@@ -82,6 +120,16 @@ export const GoalsConfig: React.FC<GoalsConfigProps> = ({ goals, onSaveGoals }) 
             <FileCode size={14} /> Modo JSON / IA (Copiar / Pegar)
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={handleResetAndSaveAdonis}
+          disabled={isSaving}
+          className="text-xs text-slate-600 hover:text-emerald-800 flex items-center gap-1 font-semibold px-2 py-1 rounded-lg hover:bg-slate-50 transition-colors"
+          title="Restablecer valores del Protocolo Adonis"
+        >
+          <RefreshCw size={12} /> Restablecer Oficial
+        </button>
       </div>
 
       {activeTab === 'json' ? (
@@ -102,10 +150,11 @@ export const GoalsConfig: React.FC<GoalsConfigProps> = ({ goals, onSaveGoals }) 
 
               <button
                 type="button"
-                onClick={handleResetDefaults}
-                className="text-xs text-slate-500 hover:text-slate-900 flex items-center gap-1 transition-colors font-medium"
+                onClick={handleResetAndSaveAdonis}
+                disabled={isSaving}
+                className="text-xs text-slate-500 hover:text-emerald-800 flex items-center gap-1 transition-colors font-medium"
               >
-                <RefreshCw size={13} /> Restaurar valores base
+                <RefreshCw size={13} /> Restaurar Plan Oficial
               </button>
             </div>
 

@@ -12,12 +12,14 @@ import { parseMealJson } from '../../services/jsonParser';
 import { Meal } from '../../types/nutrition.types';
 import { dbService } from '../../db/dbService';
 import { SAMPLE_JSON_TEMPLATES } from '../../db/seedData';
+import { getLocalDateString, normalizeDateInput } from '../../utils/dateUtils';
 
 import { awardXp, checkAndUpdateStreak, unlockAchievement } from '../../services/gamificationService';
 
 interface JsonInputModalProps {
   isOpen: boolean;
   onClose: () => void;
+  selectedDate?: string;
   onMealAdded?: (meal: Meal) => void;
   onOpenSchemaGuide?: () => void;
   onOpenSettings?: () => void;
@@ -27,6 +29,7 @@ interface JsonInputModalProps {
 export const JsonInputModal: React.FC<JsonInputModalProps> = ({
   isOpen,
   onClose,
+  selectedDate,
   onMealAdded,
   onOpenSchemaGuide,
   onOpenSettings,
@@ -35,6 +38,7 @@ export const JsonInputModal: React.FC<JsonInputModalProps> = ({
   const [activeTab, setActiveTab] = useState<'ai' | 'editor' | 'templates'>('ai');
   const [jsonText, setJsonText] = useState(initialJson || '');
   const [parsedMeal, setParsedMeal] = useState<Meal | null>(null);
+  const [parsedMeals, setParsedMeals] = useState<Meal[]>([]);
   const [parseError, setParseError] = useState<string | undefined>(undefined);
   const [autoAddRecipe, setAutoAddRecipe] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,25 +57,29 @@ export const JsonInputModal: React.FC<JsonInputModalProps> = ({
     if (!jsonText.trim()) {
       if (activeTab === 'editor') {
         setParsedMeal(null);
+        setParsedMeals([]);
         setParseError(undefined);
       }
       return;
     }
 
-    const result = parseMealJson(jsonText);
+    const result = parseMealJson(jsonText, selectedDate);
     if (result.success && result.meal) {
       setParsedMeal(result.meal);
+      setParsedMeals(result.meals && result.meals.length > 0 ? result.meals : [result.meal]);
       setParseError(undefined);
     } else {
       if (activeTab === 'editor') {
         setParsedMeal(null);
+        setParsedMeals([]);
         setParseError(result.error);
       }
     }
-  }, [jsonText, activeTab]);
+  }, [jsonText, activeTab, selectedDate]);
 
   const handleAiFoodAnalyzed = (meal: Meal, rawJson: string) => {
     setParsedMeal(meal);
+    setParsedMeals([meal]);
     setJsonText(rawJson);
     setParseError(undefined);
   };
@@ -83,27 +91,41 @@ export const JsonInputModal: React.FC<JsonInputModalProps> = ({
 
   const handleUpdateMealMeta = (updates: Partial<Meal>) => {
     if (parsedMeal) {
-      setParsedMeal({ ...parsedMeal, ...updates });
+      const updated = { ...parsedMeal, ...updates };
+      setParsedMeal(updated);
+      setParsedMeals(prev => {
+        if (prev.length <= 1) return [updated];
+        return prev.map(m => m.id === updated.id ? updated : m);
+      });
     }
   };
 
   const handleSave = async () => {
-    if (!parsedMeal) return;
+    const mealsToSave = parsedMeals.length > 0 ? parsedMeals : (parsedMeal ? [parsedMeal] : []);
+    if (mealsToSave.length === 0) return;
 
     setIsSaving(true);
     try {
-      await dbService.addMeal(parsedMeal, autoAddRecipe);
+      let lastSavedMeal: Meal | null = null;
+      for (const m of mealsToSave) {
+        const validDate = normalizeDateInput(m.date, selectedDate || getLocalDateString());
+        const mealToSave: Meal = { ...m, date: validDate };
+        await dbService.addMeal(mealToSave, autoAddRecipe);
+        lastSavedMeal = mealToSave;
+
+        // Gamificación por comida
+        checkAndUpdateStreak(mealToSave.date);
+      }
 
       // Recompensas de Gamificación
-      awardXp(25, 'Comida Registrada');
+      awardXp(25 * mealsToSave.length, mealsToSave.length > 1 ? `${mealsToSave.length} Comidas Registradas` : 'Comida Registrada');
       unlockAchievement('first_meal');
-      checkAndUpdateStreak(parsedMeal.date);
 
       if (activeTab === 'ai') {
         unlockAchievement('ai_vision');
       }
 
-      if (parsedMeal.biofeedback && (parsedMeal.biofeedback.satiety || parsedMeal.biofeedback.digestion)) {
+      if (lastSavedMeal?.biofeedback && (lastSavedMeal.biofeedback.satiety || lastSavedMeal.biofeedback.digestion)) {
         awardXp(15, 'Biofeedback Registrado');
         unlockAchievement('biofeedback_master');
       }
@@ -115,8 +137,8 @@ export const JsonInputModal: React.FC<JsonInputModalProps> = ({
         colors: ['#059669', '#0284C7', '#D97706']
       });
 
-      if (onMealAdded) {
-        onMealAdded(parsedMeal);
+      if (onMealAdded && lastSavedMeal) {
+        onMealAdded(lastSavedMeal);
       }
 
       onClose();
@@ -208,6 +230,14 @@ export const JsonInputModal: React.FC<JsonInputModalProps> = ({
               isValid={!!parsedMeal}
             />
 
+            {/* Indicador cuando se detectan múltiples comidas en el JSON */}
+            {parsedMeals.length > 1 && (
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-900">
+                <BookmarkCheck size={16} className="text-emerald-700 shrink-0" />
+                <span>Se detectaron {parsedMeals.length} comidas en el JSON. Al guardar se registrarán todas en sus respectivas fechas.</span>
+              </div>
+            )}
+
             {/* Vista Previa en tiempo real */}
             {parsedMeal && (
               <PreviewMealCard
@@ -238,11 +268,15 @@ export const JsonInputModal: React.FC<JsonInputModalProps> = ({
             <Button
               variant="primary"
               onClick={handleSave}
-              disabled={!parsedMeal || isSaving}
+              disabled={(!parsedMeal && parsedMeals.length === 0) || isSaving}
               icon={<Save size={16} />}
               className="flex-1 sm:flex-none"
             >
-              {isSaving ? 'Guardando...' : 'Registrar Comida'}
+              {isSaving
+                ? 'Guardando...'
+                : parsedMeals.length > 1
+                ? `Registrar ${parsedMeals.length} Comidas`
+                : 'Registrar Comida'}
             </Button>
           </div>
         </div>

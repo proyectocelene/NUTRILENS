@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Calendar, Clock, CheckCircle, Smile, Activity, Heart, MessageSquare, Zap, ShieldCheck, Calculator, AlertCircle, CheckCheck, RefreshCw } from 'lucide-react';
 import { Meal, MealType, SatietyLevel, DigestionFeeling, EnergyLevel } from '../../types/nutrition.types';
 import { FoodItemsList } from '../nutrition/FoodItemsList';
+import { MealHealthCard } from '../nutrition/MealHealthCard';
 import { verifyMealMath, autoBalanceMealMath } from '../../services/jsonParser';
 
 interface PreviewMealCardProps {
@@ -318,6 +319,9 @@ export const PreviewMealCard: React.FC<PreviewMealCardProps> = ({ meal, onUpdate
           </div>
         )}
       </div>
+
+      {/* Tarjeta de Diagnóstico Nutricional, Pros/Cons, Tips y Alertas */}
+      <MealHealthCard meal={meal} defaultExpanded={true} />
 
       {/* Lista de alimentos individualizados */}
       <div>

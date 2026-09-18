@@ -1,6 +1,7 @@
-﻿import confetti from 'canvas-confetti';
+import confetti from 'canvas-confetti';
 import { GamificationState, Achievement } from '../types/db.types';
 import { Meal, DailyNutritionSummary } from '../types/nutrition.types';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const LOCAL_STORAGE_GAME_KEY = 'nutrilens_gamification_state';
 
@@ -102,7 +103,7 @@ export const getGamificationState = (): GamificationState => {
     levelTitle: 'Principiante Disciplinado',
     currentStreak: 1,
     bestStreak: 1,
-    lastLoggedDate: new Date().toISOString().split('T')[0],
+    lastLoggedDate: getLocalDateString(),
     unlockedAchievementIds: ['first_meal']
   };
 };
@@ -152,7 +153,7 @@ export const awardXp = (amount: number, reason: string): { newXp: number; levele
   return { newXp, leveledUp, newLevel: levelInfo.level };
 };
 
-export const checkAndUpdateStreak = (todayStr: string = new Date().toISOString().split('T')[0]): number => {
+export const checkAndUpdateStreak = (todayStr: string = getLocalDateString()): number => {
   const state = getGamificationState();
   if (state.lastLoggedDate === todayStr) {
     return state.currentStreak;

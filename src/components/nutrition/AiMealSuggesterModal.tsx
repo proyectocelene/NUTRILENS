@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   Sparkles, 
   ChefHat, 
@@ -10,13 +10,15 @@ import {
   Clock, 
   Heart,
   Leaf,
-  ShieldCheck
+  ShieldCheck,
+  Copy
 } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
 import { Meal, NutritionGoals, DailyNutritionSummary, MealType } from '../../types/nutrition.types';
 import { analyzeFoodWithAI } from '../../services/aiNutritionService';
+import { buildChefRecommendationPrompt } from '../../services/chefPromptGenerator';
 import { dbService } from '../../db/dbService';
 import { awardXp, unlockAchievement } from '../../services/gamificationService';
 
@@ -41,6 +43,7 @@ export const AiMealSuggesterModal: React.FC<AiMealSuggesterModalProps> = ({
   const [suggestedMeal, setSuggestedMeal] = useState<Meal | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   const remCalories = Math.max(0, goals.calories - dailySummary.totalCalories);
   const remProtein = Math.max(0, Math.round((goals.protein - dailySummary.totalProtein) * 10) / 10);
@@ -103,6 +106,22 @@ Calcula todos los lípidos (omega3_g, grasas monoinsaturadas, saturadas, coleste
     }
   };
 
+  const handleCopyChefPrompt = async () => {
+    const prompt = buildChefRecommendationPrompt({
+      dailySummary,
+      goals,
+      userCravingsOrFridge: userPreferences,
+      nextMealType: selectedType
+    });
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setCopiedPrompt(true);
+      setTimeout(() => setCopiedPrompt(false), 3000);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -118,42 +137,50 @@ Calcula todos los lípidos (omega3_g, grasas monoinsaturadas, saturadas, coleste
       }
     >
       <div className="space-y-4">
-        {/* Resumen del Déficit Restante del Día */}
-        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-900 block mb-1">
-            Lo que te falta consumir hoy para clavar tus metas:
-          </span>
-          <div className="grid grid-cols-4 gap-2 text-center pt-1 font-mono">
-            <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
-              <span className="text-[10px] text-slate-500 block">Calorías</span>
-              <span className="text-sm font-black text-amber-800">{remCalories} kcal</span>
+        {/* Resumen de Macros Restantes */}
+        <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-100 text-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-bold text-purple-900 flex items-center gap-1">
+              <Clock size={13} /> Macros Faltantes Para Alcanzar Tus Metas:
+            </span>
+            <Badge variant="purple" size="sm">Cálculo en Vivo</Badge>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 text-center font-mono">
+            <div className="p-1.5 rounded-lg bg-white border border-purple-100">
+              <span className="text-[10px] text-slate-500 block font-sans">Calorías</span>
+              <span className="font-bold text-amber-800">{remCalories}</span>
+              <span className="text-[9px] text-slate-400 block">kcal</span>
             </div>
-            <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
-              <span className="text-[10px] text-slate-500 block">Proteína</span>
-              <span className="text-sm font-black text-emerald-800">{remProtein}g</span>
+            <div className="p-1.5 rounded-lg bg-white border border-purple-100">
+              <span className="text-[10px] text-slate-500 block font-sans">Proteína</span>
+              <span className="font-bold text-emerald-800">{remProtein}g</span>
+              <span className="text-[9px] text-slate-400 block">restan</span>
             </div>
-            <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
-              <span className="text-[10px] text-slate-500 block">Carbos</span>
-              <span className="text-sm font-black text-sky-800">{remCarbs}g</span>
+            <div className="p-1.5 rounded-lg bg-white border border-purple-100">
+              <span className="text-[10px] text-slate-500 block font-sans">Carbos</span>
+              <span className="font-bold text-sky-800">{remCarbs}g</span>
+              <span className="text-[9px] text-slate-400 block">restan</span>
             </div>
-            <div className="p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
-              <span className="text-[10px] text-slate-500 block">Grasas</span>
-              <span className="text-sm font-black text-amber-700">{remFat}g</span>
+            <div className="p-1.5 rounded-lg bg-white border border-purple-100">
+              <span className="text-[10px] text-slate-500 block font-sans">Grasa</span>
+              <span className="font-bold text-amber-700">{remFat}g</span>
+              <span className="text-[9px] text-slate-400 block">restan</span>
             </div>
           </div>
         </div>
 
-        {/* Tipo de comida a sugerir */}
+        {/* Momento del Día */}
         <div>
-          <label className="text-[11px] font-bold text-slate-700 block mb-1.5">
-            ¿Qué momento del día deseas planificar?
+          <label className="text-[11px] font-bold text-slate-700 block mb-1">
+            ¿Para qué momento es esta comida?
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-4 gap-1.5">
             {[
-              { id: 'dinner', label: 'Cena', emoji: '🐟' },
-              { id: 'lunch', label: 'Almuerzo', emoji: '🥗' },
               { id: 'breakfast', label: 'Desayuno', emoji: '🍳' },
-              { id: 'snack', label: 'Snack / Post-Entreno', emoji: '🍎' }
+              { id: 'lunch', label: 'Comida', emoji: '🥗' },
+              { id: 'dinner', label: 'Cena', emoji: '🐟' },
+              { id: 'snack', label: 'Snack', emoji: '🍎' }
             ].map((t) => (
               <button
                 key={t.id}
@@ -186,17 +213,29 @@ Calcula todos los lípidos (omega3_g, grasas monoinsaturadas, saturadas, coleste
           />
         </div>
 
-        {/* Botón Generar */}
-        <Button
-          variant="primary"
-          size="md"
-          onClick={handleGenerateSuggestion}
-          disabled={isGenerating}
-          icon={isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-          className="w-full shadow-md shadow-purple-600/20"
-        >
-          {isGenerating ? 'La IA está diseñando tu comida a la medida exacta...' : '✨ Sugerir Comida Inteligente para Mis Macros'}
-        </Button>
+        {/* Botones Generar & Copiar Prompt */}
+        <div className="flex flex-col sm:flex-row items-center gap-2">
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleGenerateSuggestion}
+            disabled={isGenerating}
+            icon={isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            className="w-full sm:flex-1 shadow-md shadow-purple-600/20 text-xs justify-center"
+          >
+            {isGenerating ? 'Diseñando comida...' : '✨ Sugerir con IA Directa'}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="md"
+            onClick={handleCopyChefPrompt}
+            icon={copiedPrompt ? <Check size={16} className="text-emerald-700" /> : <Copy size={16} />}
+            className="w-full sm:flex-1 text-xs justify-center border-amber-300 hover:bg-amber-50 text-amber-900"
+          >
+            {copiedPrompt ? '¡Prompt Copiado con Bitácora!' : '📋 Copiar para ChatGPT / Claude'}
+          </Button>
+        </div>
 
         {errorMessage && (
           <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">

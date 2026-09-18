@@ -1,6 +1,7 @@
 import { Meal, CanonicalFood } from '../types/nutrition.types';
 import { parseMealJson } from './jsonParser';
 import { db } from '../db';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const LOCAL_STORAGE_GEMINI_KEY = 'nutrilens_gemini_api_key';
 const LOCAL_STORAGE_GEMINI_MODEL = 'nutrilens_gemini_model';
@@ -222,6 +223,14 @@ ESTRUCTURA DE RESPUESTA JSON ESTRICTA:
       "vitamin_k_mcg": número,
       "selenium_mcg": número,
       "phosphorus_mg": número
+    },
+    "healthAnalysis": {
+      "score": número (0 a 100),
+      "diagnosis": "Diagnóstico nutricional y clínico del plato",
+      "pros": ["Puntos fuertes nutricionales"],
+      "cons": ["Áreas de mejora o aspectos a moderar"],
+      "tips": ["Tips del chef para elevar saciedad y absorción"],
+      "healthierAlternatives": "Cómo prepararlo de forma aún más saludable"
     }
   },
   "clarificationQuestions": [],
@@ -316,7 +325,7 @@ export async function analyzeFoodWithAI(
   } catch (e) {}
 
   const systemInstruction = buildSystemInstruction(canonicalFoods);
-  const todayStr = targetDate || new Date().toISOString().split('T')[0];
+  const todayStr = targetDate || getLocalDateString();
   const nowTime = targetTime || new Date().toTimeString().slice(0, 5);
   const promptWithContext = `Fecha de consumo: ${todayStr}, Hora: ${nowTime}.\n${promptText || 'Analiza los alimentos o suplementos presentes, calculando porciones y desglosando todos los lípidos, vitaminas y minerales.'}`;
 

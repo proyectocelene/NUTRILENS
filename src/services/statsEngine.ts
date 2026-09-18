@@ -1,5 +1,6 @@
 import { Meal, Micronutrients, NutritionGoals } from '../types/nutrition.types';
 import { calculateDailySummary, NUTRIENT_RICH_FOODS } from './nutritionCalculator';
+import { getLocalDateString } from '../utils/dateUtils';
 
 export interface DayTrendPoint {
   date: string;
@@ -53,7 +54,7 @@ export function generateStatsOverview(meals: Meal[], goals: NutritionGoals, days
   for (let i = daysCount - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(today.getDate() - i);
-    dateStrings.push(d.toISOString().split('T')[0]);
+    dateStrings.push(getLocalDateString(d));
   }
 
   let totalCal = 0;

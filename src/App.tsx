@@ -15,14 +15,21 @@ import { useAllMeals } from './hooks/useMeals';
 import { useNutritionGoals } from './hooks/useNutritionGoals';
 import { initializeDatabase } from './db';
 import { dbService } from './db/dbService';
-import { startRealtimeFirestoreSync, stopRealtimeFirestoreSync, isFirebaseConfigured } from './services/firebaseService';
+import { 
+  startRealtimeFirestoreSync, 
+  stopRealtimeFirestoreSync, 
+  isFirebaseConfigured,
+  onAuthUserChange,
+  initFirebase
+} from './services/firebaseService';
 import { DbRecipe } from './types/db.types';
 import { Meal } from './types/nutrition.types';
+import { getLocalDateString } from './utils/dateUtils';
 
 export function App() {
   const [currentView, setCurrentView] = useState<NavView>('day');
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
+    getLocalDateString()
   );
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [isSchemaGuideOpen, setIsSchemaGuideOpen] = useState(false);
@@ -35,10 +42,19 @@ export function App() {
     initializeDatabase().catch(console.error);
 
     if (isFirebaseConfigured()) {
-      startRealtimeFirestoreSync().catch(console.error);
+      initFirebase().then(() => {
+        startRealtimeFirestoreSync().catch(console.error);
+      });
     }
 
+    const unsub = onAuthUserChange((user) => {
+      if (user) {
+        startRealtimeFirestoreSync().catch(console.error);
+      }
+    });
+
     return () => {
+      unsub();
       stopRealtimeFirestoreSync();
     };
   }, []);
@@ -164,6 +180,13 @@ export function App() {
       {/* Modal Ingesta JSON / IA Global */}
       <JsonInputModal
         isOpen={isJsonModalOpen}
+        selectedDate={selectedDate}
+        onMealAdded={(addedMeal) => {
+          if (addedMeal?.date) {
+            setSelectedDate(addedMeal.date);
+          }
+          setCurrentView('day');
+        }}
         onClose={() => {
           setIsJsonModalOpen(false);
           setInitialModalJson(undefined);

@@ -31,6 +31,7 @@ import {
   AiAnalysisResult
 } from '../../services/aiNutritionService';
 import { Meal } from '../../types/nutrition.types';
+import { getLocalDateString } from '../../utils/dateUtils';
 
 interface AiFoodInputProps {
   onFoodAnalyzed: (meal: Meal, rawJson: string) => void;
@@ -67,7 +68,7 @@ export const AiFoodInput: React.FC<AiFoodInputProps> = ({ onFoodAnalyzed, onOpen
   const [hasApiKey, setHasApiKey] = useState(false);
 
   // Fecha y hora del registro
-  const [targetDate, setTargetDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [targetDate, setTargetDate] = useState<string>(getLocalDateString());
   const [targetTime, setTargetTime] = useState<string>(new Date().toTimeString().slice(0, 5));
   
   // Estado de conversación y refinamiento continuo

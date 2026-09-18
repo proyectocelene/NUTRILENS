@@ -1,5 +1,6 @@
 import { FoodItem, Meal, MealType, Micronutrients } from '../types/nutrition.types';
 import { getSmartFoodEmoji } from '../utils/foodEmoji';
+import { getLocalDateString, normalizeDateInput, isValidDateFormat } from '../utils/dateUtils';
 
 // Helper robusto para convertir cadenas o números a flotantes limpios
 export function safeNumber(val: any): number {
@@ -419,12 +420,155 @@ export function autoBalanceMealMath(meal: Meal): Meal {
 export interface ParseResult {
   success: boolean;
   meal?: Meal;
+  meals?: Meal[];
   mathReport?: MathVerificationReport;
   error?: string;
 }
 
+// Construye una comida limpia individual a partir de un objeto JSON sin fallar por tipos o claves alternativas
+export function buildSingleMeal(
+  raw: any,
+  defaultDate: string,
+  defaultMealType: MealType = 'lunch',
+  index: number = 0,
+  sourceJson?: string
+): Meal {
+  let mealName = 'Comida Registrada';
+  let mealType: MealType = defaultMealType;
+  let date = defaultDate;
+  const nowTime = new Date().toTimeString().slice(0, 5);
+  let time = nowTime;
+  let notes = '';
+  let foodsList: any[] = [];
+
+  if (raw && typeof raw === 'object') {
+    mealName = raw.name || raw.nombre || raw.title || raw.titulo || `Comida ${index + 1}`;
+
+    const rawMealType = String(raw.mealType || raw.meal_type || raw.tipo || raw.tipoComida || defaultMealType).toLowerCase();
+    if (['breakfast', 'desayuno'].includes(rawMealType)) mealType = 'breakfast';
+    else if (['lunch', 'almuerzo', 'comida'].includes(rawMealType)) mealType = 'lunch';
+    else if (['dinner', 'cena'].includes(rawMealType)) mealType = 'dinner';
+    else if (['snack', 'merienda', 'tentempie', 'colacion'].includes(rawMealType)) mealType = 'snack';
+    else mealType = 'other';
+
+    date = normalizeDateInput(raw.date || raw.fecha, defaultDate);
+    time = raw.time || raw.hora || nowTime;
+    notes = raw.notes || raw.notas || raw.descripcion || '';
+
+    const candidateFoods = raw.foods || raw.alimentos || raw.items || raw.ingredients || raw.ingredientes;
+    if (Array.isArray(candidateFoods)) {
+      foodsList = candidateFoods;
+    } else if (raw.calories !== undefined || raw.protein !== undefined) {
+      foodsList = [raw];
+    }
+  }
+
+  // Normalizar alimentos y limpiar unidades
+  const foods: FoodItem[] = foodsList.map((item, idx) => normalizeFoodItem(item, idx));
+
+  // Sumar totales reales de los ingredientes
+  let totalCalories = 0;
+  let totalProtein = 0;
+  let totalCarbs = 0;
+  let totalFat = 0;
+  let totalFiber = 0;
+  const totalNutrients: Micronutrients = {};
+
+  for (const food of foods) {
+    totalCalories += food.calories;
+    totalProtein += food.protein;
+    totalCarbs += food.carbs;
+    totalFat += food.fat;
+    totalFiber += (food.fiber || 0);
+
+    if (food.nutrients) {
+      for (const [k, v] of Object.entries(food.nutrients)) {
+        const key = k as keyof Micronutrients;
+        if (typeof v === 'number' && !isNaN(v)) {
+          totalNutrients[key] = (totalNutrients[key] || 0) + v;
+        }
+      }
+    }
+  }
+
+  // Si la IA declaró totales en la raíz y la suma de alimentos es cero o menor, usar los declarados
+  if (raw && typeof raw === 'object') {
+    const declaredCal = safeNumber(raw.totalCalories ?? raw.calories ?? raw.calorias ?? raw.kcal);
+    const declaredProt = safeNumber(raw.totalProtein ?? raw.protein ?? raw.proteina);
+    const declaredCarbs = safeNumber(raw.totalCarbs ?? raw.carbs ?? raw.carbohidratos);
+    const declaredFat = safeNumber(raw.totalFat ?? raw.fat ?? raw.grasa);
+    const declaredFiber = safeNumber(raw.totalFiber ?? raw.fiber ?? raw.fibra);
+
+    if (totalCalories === 0 && declaredCal > 0) totalCalories = declaredCal;
+    if (totalProtein === 0 && declaredProt > 0) totalProtein = declaredProt;
+    if (totalCarbs === 0 && declaredCarbs > 0) totalCarbs = declaredCarbs;
+    if (totalFat === 0 && declaredFat > 0) totalFat = declaredFat;
+    if (totalFiber === 0 && declaredFiber > 0) totalFiber = declaredFiber;
+
+    // Fusionar micronutrientes declarados a nivel raíz
+    if (raw.totalNutrients) {
+      const normalizedAiTotals = normalizeNutrients(raw.totalNutrients);
+      for (const [k, v] of Object.entries(normalizedAiTotals)) {
+        const key = k as keyof Micronutrients;
+        if (typeof v === 'number' && !isNaN(v)) {
+          totalNutrients[key] = v;
+        }
+      }
+    }
+  }
+
+  // Redondear totales
+  for (const k of Object.keys(totalNutrients)) {
+    const key = k as keyof Micronutrients;
+    if (totalNutrients[key] !== undefined) {
+      totalNutrients[key] = Math.round((totalNutrients[key] as number) * 10) / 10;
+    }
+  }
+
+  // Extraer diagnóstico de salud, pros, cons y tips del chef
+  let healthDiagnostic: Meal['healthDiagnostic'] = undefined;
+  const rawHealth = raw?.healthAnalysis || raw?.analisisSalud || raw?.diagnostico || raw?.healthDiagnostic;
+  if (rawHealth && typeof rawHealth === 'object') {
+    healthDiagnostic = {
+      score: safeNumber(rawHealth.score ?? rawHealth.puntuacion) || undefined,
+      diagnosis: rawHealth.diagnosis || rawHealth.diagnostico || rawHealth.resumen || rawHealth.summary || undefined,
+      pros: Array.isArray(rawHealth.pros) ? rawHealth.pros.map(String) : (Array.isArray(rawHealth.bueno) ? rawHealth.bueno.map(String) : undefined),
+      cons: Array.isArray(rawHealth.cons) ? rawHealth.cons.map(String) : (Array.isArray(rawHealth.malo) ? rawHealth.malo.map(String) : (Array.isArray(rawHealth.contra) ? rawHealth.contra.map(String) : undefined)),
+      tips: Array.isArray(rawHealth.tips) ? rawHealth.tips.map(String) : (Array.isArray(rawHealth.consejos) ? rawHealth.consejos.map(String) : undefined),
+      healthierAlternatives: rawHealth.healthierAlternatives || rawHealth.alternativasSaludables || rawHealth.comoHacerloMasSaludable || undefined
+    };
+  } else if (raw?.tips || raw?.consejos || raw?.pros || raw?.cons) {
+    healthDiagnostic = {
+      tips: Array.isArray(raw.tips) ? raw.tips.map(String) : (Array.isArray(raw.consejos) ? raw.consejos.map(String) : undefined),
+      pros: Array.isArray(raw.pros) ? raw.pros.map(String) : undefined,
+      cons: Array.isArray(raw.cons) ? raw.cons.map(String) : undefined
+    };
+  }
+
+  return {
+    id: raw?.id || `meal_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 6)}`,
+    name: mealName,
+    emoji: (raw && raw.emoji) ? raw.emoji : getSmartFoodEmoji(mealName, mealType),
+    mealType,
+    date,
+    time,
+    foods,
+    totalCalories: Math.round(totalCalories),
+    totalProtein: Math.round(totalProtein * 10) / 10,
+    totalCarbs: Math.round(totalCarbs * 10) / 10,
+    totalFat: Math.round(totalFat * 10) / 10,
+    totalFiber: Math.round(totalFiber * 10) / 10,
+    totalNutrients,
+    healthDiagnostic,
+    notes: notes || undefined,
+    sourceJson,
+    createdAt: Date.now() + index,
+    updatedAt: Date.now() + index
+  };
+}
+
 // Parsea un string JSON con tolerancia a fallos, extracción de texto conversacional y validación matemática
-export function parseMealJson(input: string): ParseResult {
+export function parseMealJson(input: string, fallbackDate?: string): ParseResult {
   if (!input || !input.trim()) {
     return { success: false, error: 'El contenido JSON está vacío.' };
   }
@@ -442,129 +586,66 @@ export function parseMealJson(input: string): ParseResult {
   }
 
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const nowTime = new Date().toTimeString().slice(0, 5);
+    const effectiveDefaultDate = normalizeDateInput(fallbackDate, getLocalDateString());
+    const meals: Meal[] = [];
 
-    let mealName = 'Comida Registrada';
-    let mealType: MealType = 'lunch';
-    let date = today;
-    let time = nowTime;
-    let notes = '';
-    let foodsList: any[] = [];
-
+    // Caso 1: parsed es un arreglo
     if (Array.isArray(parsed)) {
-      foodsList = parsed;
+      if (parsed.length === 0) {
+        return { success: false, error: 'El arreglo JSON está vacío.' };
+      }
+
+      // Determinar si los elementos son Comidas o Alimentos
+      const firstItem = parsed[0];
+      const isItemMeal = firstItem && typeof firstItem === 'object' && (
+        Array.isArray(firstItem.foods) ||
+        Array.isArray(firstItem.alimentos) ||
+        Array.isArray(firstItem.ingredientes) ||
+        firstItem.mealType !== undefined ||
+        firstItem.tipo !== undefined ||
+        firstItem.tipoComida !== undefined ||
+        ('name' in firstItem && ('date' in firstItem || 'fecha' in firstItem || 'time' in firstItem || 'hora' in firstItem))
+      );
+
+      if (isItemMeal) {
+        // Arreglo de Comidas
+        for (let i = 0; i < parsed.length; i++) {
+          const m = buildSingleMeal(parsed[i], effectiveDefaultDate, 'lunch', i, input);
+          if (m.foods.length > 0 || m.totalCalories > 0) {
+            meals.push(m);
+          }
+        }
+      } else {
+        // Arreglo de Alimentos para una sola comida
+        const singleMeal = buildSingleMeal({ foods: parsed, name: 'Comida Registrada' }, effectiveDefaultDate, 'lunch', 0, input);
+        meals.push(singleMeal);
+      }
     } else if (typeof parsed === 'object' && parsed !== null) {
-      mealName = parsed.name || parsed.nombre || parsed.title || parsed.titulo || 'Comida Registrada';
-      
-      const rawMealType = (parsed.mealType || parsed.meal_type || parsed.tipo || parsed.tipoComida || 'lunch').toLowerCase();
-      if (['breakfast', 'desayuno'].includes(rawMealType)) mealType = 'breakfast';
-      else if (['lunch', 'almuerzo', 'comida'].includes(rawMealType)) mealType = 'lunch';
-      else if (['dinner', 'cena'].includes(rawMealType)) mealType = 'dinner';
-      else if (['snack', 'merienda', 'tentempie', 'colacion'].includes(rawMealType)) mealType = 'snack';
-      else mealType = 'other';
-
-      date = parsed.date || parsed.fecha || today;
-      time = parsed.time || parsed.hora || nowTime;
-      notes = parsed.notes || parsed.notas || parsed.descripcion || '';
-
-      const candidateFoods = parsed.foods || parsed.alimentos || parsed.items || parsed.ingredients || parsed.ingredientes;
-      if (Array.isArray(candidateFoods)) {
-        foodsList = candidateFoods;
-      } else if (parsed.calories !== undefined || parsed.protein !== undefined) {
-        foodsList = [parsed];
+      // Caso 2: Objeto contenedor con lista de comidas (ej: { date: "...", meals: [...] })
+      const candidateMeals = parsed.meals || parsed.comidas || parsed.diet || parsed.platos;
+      if (Array.isArray(candidateMeals) && candidateMeals.length > 0) {
+        const rootDate = normalizeDateInput(parsed.date || parsed.fecha, effectiveDefaultDate);
+        for (let i = 0; i < candidateMeals.length; i++) {
+          const m = buildSingleMeal(candidateMeals[i], rootDate, 'lunch', i, input);
+          if (m.foods.length > 0 || m.totalCalories > 0) {
+            meals.push(m);
+          }
+        }
+      } else {
+        // Caso 3: Objeto de una sola comida
+        const singleMeal = buildSingleMeal(parsed, effectiveDefaultDate, 'lunch', 0, input);
+        meals.push(singleMeal);
       }
     } else {
       return { success: false, error: 'El formato proporcionado no es un objeto ni un arreglo JSON válido.' };
     }
 
-    if (foodsList.length === 0) {
-      return { success: false, error: 'No se encontraron alimentos en el JSON. Asegúrate de incluir la lista de ingredientes.' };
+    if (meals.length === 0 || (meals.length === 1 && meals[0].foods.length === 0 && meals[0].totalCalories === 0)) {
+      return { success: false, error: 'No se encontraron alimentos ni información nutricional en el JSON.' };
     }
 
-    // Normalizar alimentos y limpiar unidades
-    const foods: FoodItem[] = foodsList.map((item, idx) => normalizeFoodItem(item, idx));
-
-    // Sumar totales reales de los ingredientes
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalCarbs = 0;
-    let totalFat = 0;
-    let totalFiber = 0;
-    const totalNutrients: Micronutrients = {};
-
-    for (const food of foods) {
-      totalCalories += food.calories;
-      totalProtein += food.protein;
-      totalCarbs += food.carbs;
-      totalFat += food.fat;
-      totalFiber += (food.fiber || 0);
-
-      if (food.nutrients) {
-        for (const [k, v] of Object.entries(food.nutrients)) {
-          const key = k as keyof Micronutrients;
-          if (typeof v === 'number' && !isNaN(v)) {
-            totalNutrients[key] = (totalNutrients[key] || 0) + v;
-          }
-        }
-      }
-    }
-
-    // Si la IA declaró totales en la raíz y la suma de alimentos es cero, usar los declarados
-    if (typeof parsed === 'object' && parsed !== null) {
-      const declaredCal = safeNumber(parsed.totalCalories ?? parsed.calories ?? parsed.calorias ?? parsed.kcal);
-      const declaredProt = safeNumber(parsed.totalProtein ?? parsed.protein ?? parsed.proteina);
-      const declaredCarbs = safeNumber(parsed.totalCarbs ?? parsed.carbs ?? parsed.carbohidratos);
-      const declaredFat = safeNumber(parsed.totalFat ?? parsed.fat ?? parsed.grasa);
-      const declaredFiber = safeNumber(parsed.totalFiber ?? parsed.fiber ?? parsed.fibra);
-
-      if (totalCalories === 0 && declaredCal > 0) totalCalories = declaredCal;
-      if (totalProtein === 0 && declaredProt > 0) totalProtein = declaredProt;
-      if (totalCarbs === 0 && declaredCarbs > 0) totalCarbs = declaredCarbs;
-      if (totalFat === 0 && declaredFat > 0) totalFat = declaredFat;
-      if (totalFiber === 0 && declaredFiber > 0) totalFiber = declaredFiber;
-
-      // Fusionar micronutrientes declarados a nivel raíz
-      if (parsed.totalNutrients) {
-        const normalizedAiTotals = normalizeNutrients(parsed.totalNutrients);
-        for (const [k, v] of Object.entries(normalizedAiTotals)) {
-          const key = k as keyof Micronutrients;
-          if (typeof v === 'number' && !isNaN(v)) {
-            totalNutrients[key] = v;
-          }
-        }
-      }
-    }
-
-    // Redondear totales
-    for (const k of Object.keys(totalNutrients)) {
-      const key = k as keyof Micronutrients;
-      if (totalNutrients[key] !== undefined) {
-        totalNutrients[key] = Math.round((totalNutrients[key] as number) * 10) / 10;
-      }
-    }
-
-    const meal: Meal = {
-      id: `meal_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-      name: mealName,
-      emoji: (typeof parsed === 'object' && parsed?.emoji) ? parsed.emoji : getSmartFoodEmoji(mealName, mealType),
-      mealType,
-      date,
-      time,
-      foods,
-      totalCalories: Math.round(totalCalories),
-      totalProtein: Math.round(totalProtein * 10) / 10,
-      totalCarbs: Math.round(totalCarbs * 10) / 10,
-      totalFat: Math.round(totalFat * 10) / 10,
-      totalFiber: Math.round(totalFiber * 10) / 10,
-      totalNutrients,
-      notes: notes || undefined,
-      sourceJson: input,
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    };
-
-    const mathReport = verifyMealMath(meal, typeof parsed === 'object' ? {
+    const primaryMeal = meals[0];
+    const mathReport = verifyMealMath(primaryMeal, typeof parsed === 'object' && !Array.isArray(parsed) ? {
       calories: safeNumber(parsed.totalCalories ?? parsed.calories),
       protein: safeNumber(parsed.totalProtein ?? parsed.protein),
       carbs: safeNumber(parsed.totalCarbs ?? parsed.carbs),
@@ -572,8 +653,14 @@ export function parseMealJson(input: string): ParseResult {
       fiber: safeNumber(parsed.totalFiber ?? parsed.fiber)
     } : undefined);
 
-    return { success: true, meal, mathReport };
+    return {
+      success: true,
+      meal: primaryMeal,
+      meals,
+      mathReport
+    };
   } catch (err: any) {
     return { success: false, error: `Error procesando datos nutricionales: ${err.message}` };
   }
 }
+

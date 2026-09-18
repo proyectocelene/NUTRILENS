@@ -6,9 +6,13 @@ import {
   deleteMealFromFirestore, 
   syncRecipeToFirestore, 
   deleteRecipeFromFirestore, 
-  syncGoalsToFirestore 
+  syncGoalsToFirestore,
+  syncDailyLogToFirestore,
+  syncCanonicalFoodToFirestore,
+  deleteCanonicalFoodFromFirestore
 } from '../services/firebaseService';
 import { SAMPLE_JSON_TEMPLATES } from './seedData';
+import { getLocalDateString } from '../utils/dateUtils';
 
 export const dbService = {
   // Comidas con Auto-extracción al Banco de Recetas y Sincronización en la Nube
@@ -93,11 +97,13 @@ export const dbService = {
     const id = food.id || `canon_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     const newFood: CanonicalFood = { ...food, id, createdAt: food.createdAt || Date.now(), updatedAt: Date.now() };
     await db.canonicalFoods.put(newFood);
+    syncCanonicalFoodToFirestore(newFood).catch(() => {});
     return id;
   },
 
   async deleteCanonicalFood(id: string): Promise<void> {
     await db.canonicalFoods.delete(id);
+    deleteCanonicalFoodFromFirestore(id).catch(() => {});
   },
 
   async getAllCanonicalFoods(): Promise<CanonicalFood[]> {
@@ -200,13 +206,14 @@ export const dbService = {
 
   async updateDailyLog(log: DbDailyLog): Promise<void> {
     const id = log.id || `log_${log.date}`;
-    await db.dailyLogs.put({ ...log, id });
+    const updated = { ...log, id };
+    await db.dailyLogs.put(updated);
+    syncDailyLogToFirestore(updated).catch(() => {});
   },
 
   // Cargar datos de prueba del Protocolo Adonis
   async seedDemoMeals(): Promise<void> {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = getLocalDateString();
 
     for (let i = 0; i < SAMPLE_JSON_TEMPLATES.length; i++) {
       const tmpl = SAMPLE_JSON_TEMPLATES[i];

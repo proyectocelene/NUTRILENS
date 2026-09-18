@@ -4,6 +4,7 @@ import { Meal, MealType } from '../../types/nutrition.types';
 import { Card } from '../common/Card';
 import { Badge } from '../common/Badge';
 import { FoodItemsList } from '../nutrition/FoodItemsList';
+import { MealHealthCard } from '../nutrition/MealHealthCard';
 import { dbService } from '../../db/dbService';
 import { getSmartFoodEmoji } from '../../utils/foodEmoji';
 import { MealEditModal } from './MealEditModal';
@@ -220,6 +221,9 @@ export const MealCard: React.FC<MealCardProps> = ({ meal, onDeleted, onReuseJson
               )}
             </div>
           )}
+
+          {/* Tarjeta de Diagnóstico Nutricional, Pros/Cons, Tips y Alertas */}
+          <MealHealthCard meal={meal} />
 
           <FoodItemsList foods={meal.foods} />
         </div>

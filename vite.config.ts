@@ -3,12 +3,15 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  base: '/NUTRILENS/',
+export default defineConfig(({ command }) => ({
+  base: command === 'serve' ? '/' : '/NUTRILENS/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      devOptions: {
+        enabled: false
+      },
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'favicon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'maskable-icon-512x512.png'],
       manifest: {
         name: 'NutriLens - Nutrición & Recomposición Inteligente',
@@ -60,4 +63,4 @@ export default defineConfig({
       }
     }
   }
-});
+}));

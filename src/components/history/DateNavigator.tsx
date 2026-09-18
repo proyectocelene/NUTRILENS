@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, RotateCcw } from 'lucide-react';
+import { getLocalDateString } from '../../utils/dateUtils';
 
 interface DateNavigatorProps {
   selectedDate: string; // YYYY-MM-DD
@@ -10,7 +11,7 @@ export const DateNavigator: React.FC<DateNavigatorProps> = ({ selectedDate, onDa
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = getLocalDateString(today);
 
   const dateObj = new Date(selectedDate + 'T00:00:00');
   const isToday = selectedDate === todayStr;
@@ -18,22 +19,22 @@ export const DateNavigator: React.FC<DateNavigatorProps> = ({ selectedDate, onDa
   // Calcular si es ayer o mañana para badges inteligentes
   const yesterdayObj = new Date();
   yesterdayObj.setDate(today.getDate() - 1);
-  const isYesterday = selectedDate === yesterdayObj.toISOString().split('T')[0];
+  const isYesterday = selectedDate === getLocalDateString(yesterdayObj);
 
   const tomorrowObj = new Date();
   tomorrowObj.setDate(today.getDate() + 1);
-  const isTomorrow = selectedDate === tomorrowObj.toISOString().split('T')[0];
+  const isTomorrow = selectedDate === getLocalDateString(tomorrowObj);
 
   const handlePrevDay = () => {
     const d = new Date(selectedDate + 'T00:00:00');
     d.setDate(d.getDate() - 1);
-    onDateChange(d.toISOString().split('T')[0]);
+    onDateChange(getLocalDateString(d));
   };
 
   const handleNextDay = () => {
     const d = new Date(selectedDate + 'T00:00:00');
     d.setDate(d.getDate() + 1);
-    onDateChange(d.toISOString().split('T')[0]);
+    onDateChange(getLocalDateString(d));
   };
 
   const handleSetToday = () => {

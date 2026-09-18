@@ -86,6 +86,15 @@ export interface MealBiofeedback {
   feelingNotes?: string;
 }
 
+export interface MealHealthDiagnostic {
+  score?: number; // 0-100 Puntuación de calidad nutricional
+  diagnosis?: string; // Diagnóstico clínico global de la comida
+  pros?: string[]; // Lo bueno / fortalezas nutricionales
+  cons?: string[]; // Lo malo / aspectos a mejorar o moderar
+  tips?: string[]; // Consejos gastronómicos y de salud del chef
+  healthierAlternatives?: string; // Alternativas para prepararlo aún más saludable
+}
+
 export interface Meal {
   id?: string;
   name: string;
@@ -101,6 +110,7 @@ export interface Meal {
   totalFiber: number;
   totalNutrients: Micronutrients;
   biofeedback?: MealBiofeedback;
+  healthDiagnostic?: MealHealthDiagnostic;
   notes?: string;
   sourceJson?: string;
   originalPrompt?: string;   // Descripción original escrita/dictada por el usuario

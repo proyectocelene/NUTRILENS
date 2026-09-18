@@ -27,6 +27,7 @@ import { DailyReflectionCard } from './DailyReflectionCard';
 import { GamificationBar } from '../gamification/GamificationBar';
 import { AiMealSuggesterModal } from '../nutrition/AiMealSuggesterModal';
 import { VisualPortionGuideModal } from '../nutrition/VisualPortionGuideModal';
+import { ChefPromptModal } from '../nutrition/ChefPromptModal';
 import { Button } from '../common/Button';
 import { useDailyStats } from '../../hooks/useDailyStats';
 import { dbService } from '../../db/dbService';
@@ -53,6 +54,7 @@ export const DayView: React.FC<DayViewProps> = ({
   const { dailySummary, nutrientGaps } = useDailyStats(selectedDate, allMeals, goals);
   const [activeDaySection, setActiveDaySection] = useState<'meals' | 'supplements' | 'nutrition' | 'reflection'>('meals');
   const [isSuggesterOpen, setIsSuggesterOpen] = useState(false);
+  const [isChefPromptOpen, setIsChefPromptOpen] = useState(false);
   const [isPortionGuideOpen, setIsPortionGuideOpen] = useState(false);
 
   const maxCaffeine = goals.profile?.caffeineDailyMaxMg || 400;
@@ -263,39 +265,58 @@ export const DayView: React.FC<DayViewProps> = ({
           </div>
 
           {/* Botones de Acción Rápida Inteligente */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {/* 1. Generador de Prompt de Chef (con Bitácora Actual) */}
+            <button
+              type="button"
+              onClick={() => setIsChefPromptOpen(true)}
+              className="p-3 rounded-2xl bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white text-left shadow-md shadow-amber-700/10 hover:brightness-105 active:scale-98 transition-all flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-white/20 shrink-0">
+                  <ChefHat size={18} />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-black block truncate">¿Qué comer ahora?</span>
+                  <span className="text-[10px] text-amber-100 block truncate">Copiar Prompt IA con mi bitácora</span>
+                </div>
+              </div>
+              <Sparkles size={16} className="text-amber-200 animate-pulse shrink-0 ml-1" />
+            </button>
+
+            {/* 2. Sugerencia IA Integrada */}
             <button
               type="button"
               onClick={() => setIsSuggesterOpen(true)}
               className="p-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white text-left shadow-md shadow-purple-700/10 hover:brightness-105 active:scale-98 transition-all flex items-center justify-between"
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-white/20">
-                  <ChefHat size={18} />
+                <div className="p-2 rounded-xl bg-white/20 shrink-0">
+                  <Sparkles size={18} />
                 </div>
-                <div>
-                  <span className="text-xs font-black block">¿Qué debería comer ahora?</span>
-                  <span className="text-[10px] text-purple-100 block">IA calcula lo que te falta y diseña la comida</span>
+                <div className="min-w-0">
+                  <span className="text-xs font-black block truncate">Sugerencia IA Directa</span>
+                  <span className="text-[10px] text-purple-100 block truncate">Diseñar e ingerir receta</span>
                 </div>
               </div>
-              <Sparkles size={16} className="text-amber-300 animate-pulse shrink-0" />
             </button>
 
+            {/* 3. Guía Visual de Raciones */}
             <button
               type="button"
               onClick={() => setIsPortionGuideOpen(true)}
               className="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-left shadow-xs transition-all flex items-center justify-between text-slate-800"
             >
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                   <Eye size={18} />
                 </div>
-                <div>
-                  <span className="text-xs font-bold block">Guía Visual de Raciones</span>
-                  <span className="text-[10px] text-slate-500 block">Distribución de platos para Desayuno, Comida y Cena</span>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold block truncate">Guía de Raciones</span>
+                  <span className="text-[10px] text-slate-500 block truncate">Distribución visual de platos</span>
                 </div>
               </div>
-              <Utensils size={15} className="text-slate-400 shrink-0" />
+              <Utensils size={15} className="text-slate-400 shrink-0 ml-1" />
             </button>
           </div>
 
@@ -451,6 +472,14 @@ export const DayView: React.FC<DayViewProps> = ({
           />
         </div>
       )}
+
+      {/* Modal Generador del Prompt de Chef con Bitácora de Hoy */}
+      <ChefPromptModal
+        isOpen={isChefPromptOpen}
+        onClose={() => setIsChefPromptOpen(false)}
+        dailySummary={dailySummary}
+        goals={goals}
+      />
 
       {/* Modal Sugeridor IA con lo que falta en el día */}
       <AiMealSuggesterModal

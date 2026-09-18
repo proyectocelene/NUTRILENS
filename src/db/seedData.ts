@@ -135,6 +135,14 @@ REGLAS ESTRICTAS:
     "vitamin_k_mcg": 0,
     "selenium_mcg": 0,
     "phosphorus_mg": 0
+  },
+  "healthAnalysis": {
+    "score": 85,
+    "diagnosis": "Diagnóstico nutricional breve de la comida...",
+    "pros": ["Puntos fuertes nutricionales (ej: alta proteína, omega-3)"],
+    "cons": ["Aspectos a moderar (ej: sodio, baja fibra)"],
+    "tips": ["Consejos del chef para mejorar sabor o absorción"],
+    "healthierAlternatives": "Alternativas gastronómicas para hacerlo aún más saludable"
   }
 }`;
 
