@@ -38,7 +38,8 @@ import {
   setCustomSyncId,
   onSyncStateChange,
   SyncStateInfo,
-  DEFAULT_MASTER_USER_ID
+  DEFAULT_MASTER_USER_ID,
+  getStoredFirebaseConfig
 } from '../../services/firebaseService';
 
 export const FirebaseSyncCard: React.FC = () => {
@@ -397,15 +398,38 @@ service cloud.firestore {
             </div>
           </div>
 
-          {/* Si NO tiene sesión de Google, ofrecer inicio opcional */}
-          {!user && (
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          {/* Aviso si el proyecto no es nutrilens-fce87 */}
+          {getStoredFirebaseConfig().projectId !== 'nutrilens-fce87' && (
+            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="space-y-0.5">
-                <p className="font-semibold text-slate-800">
-                  📱 Sincronización transparente activa entre tus dispositivos
+                <p className="font-bold flex items-center gap-1.5">
+                  <AlertTriangle size={14} className="text-amber-700" />
+                  <span>Configuración del Proyecto Firebase</span>
                 </p>
-                <p className="text-[11px] text-slate-500">
-                  Cualquier comida que agregues aquí se respaldará automáticamente en Firestore. Abre la PWA en tu celular para ver tus datos reflejados al instante.
+                <p className="text-[11px] text-amber-900 leading-relaxed">
+                  Tu base de datos en Firebase Console es <strong>nutrilens-fce87</strong>. Actualmente la PWA apunta a <code>{getStoredFirebaseConfig().projectId}</code>. Haz clic en <strong>Configurar Proyecto</strong> para pegar tu <code>firebaseConfig</code> de <strong>nutrilens-fce87</strong>.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold text-xs shrink-0 self-start sm:self-auto transition-colors"
+              >
+                Vincular nutrilens-fce87
+              </button>
+            </div>
+          )}
+
+          {/* Si NO tiene sesión de Google, destacar inicio de sesión requerido por sus reglas */}
+          {!user && (
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/40 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                  <ShieldCheck size={16} className="text-blue-600" />
+                  <span>Tus datos están 100% protegidos por tus reglas de Firebase</span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed max-w-xl">
+                  Tus reglas de seguridad actuales (<code className="bg-slate-100 px-1 py-0.5 rounded text-blue-900 font-mono text-[10px]">request.auth != null && request.auth.uid == userId</code>) garantizan que <strong>solo tú</strong> puedas leer y escribir tus comidas. Inicia sesión con Google para comenzar a sincronizar tus dispositivos de forma segura y automática.
                 </p>
               </div>
 
@@ -413,15 +437,15 @@ service cloud.firestore {
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={isSigning}
-                className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-xs font-semibold text-slate-700 shadow-2xs transition-all shrink-0 self-start sm:self-auto"
+                className="flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-xs font-bold text-slate-800 shadow-sm transition-all shrink-0 self-start sm:self-auto hover:border-slate-400 active:scale-98"
               >
-                <svg width="14" height="14" viewBox="0 0 48 48">
+                <svg width="16" height="16" viewBox="0 0 48 48">
                   <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
                   <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
                   <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
                   <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
                 </svg>
-                <span>{isSigning ? 'Abriendo...' : 'Vincular con Google'}</span>
+                <span>{isSigning ? 'Abriendo Google...' : 'Iniciar Sesión con Google'}</span>
               </button>
             </div>
           )}

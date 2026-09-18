@@ -340,11 +340,16 @@ export const testFirestoreConnection = async (): Promise<DiagnosticResult> => {
     let friendlyMessage = err.message || 'Error desconocido';
 
     if (code === 'permission-denied') {
-      friendlyMessage = 'Permisos denegados (permission-denied). Las Reglas de Seguridad de Firestore están bloqueando el acceso.';
-      recommendation = 'Ve a Firebase Console -> Firestore Database -> pestaña "Reglas" y actualízalas para permitir lectura y escritura.';
+      if (!currentUser) {
+        friendlyMessage = 'Permisos denegados (permission-denied): Tus reglas de seguridad exigen iniciar sesión con Google (request.auth != null).';
+        recommendation = 'Haz clic en el botón "Iniciar sesión con Google" para autenticarte y sincronizar tus comidas con tu cuenta personal.';
+      } else {
+        friendlyMessage = 'Permisos denegados (permission-denied): Las reglas de Firestore no permitieron escribir en tu carpeta de usuario.';
+        recommendation = 'Verifica que tus reglas tengan: match /users/{userId}/{document=**} { allow read, write: if request.auth != null && request.auth.uid == userId; }';
+      }
     } else if (code === 'not-found' || err.message?.includes('database') || err.message?.includes('not exist')) {
-      friendlyMessage = 'Base de datos Firestore no encontrada.';
-      recommendation = 'Ve a Firebase Console -> Firestore Database y haz clic en "Crear base de datos".';
+      friendlyMessage = 'Base de datos Firestore no encontrada o proyecto no coincide.';
+      recommendation = 'Verifica que el projectId en la configuración sea exactamente nutrilens-fce87.';
     } else if (code === 'unavailable') {
       friendlyMessage = 'Servicio de Firebase no disponible o sin conexión a internet.';
       recommendation = 'Verifica tu conexión de red o si Firebase tiene intermitencias.';
