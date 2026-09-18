@@ -241,7 +241,7 @@ service cloud.firestore {
               >
                 console.firebase.google.com
               </a>{' '}
-              (Proyecto: <strong>coachv2-app</strong>):
+              (Proyecto: <strong>nutrilens-fce87</strong>):
             </p>
 
             <div className="space-y-2.5 pt-1">

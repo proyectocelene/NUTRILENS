@@ -35,12 +35,12 @@ export interface FirebaseConfig {
 }
 
 export const DEFAULT_FIREBASE_CONFIG: FirebaseConfig = {
-  apiKey: "AIzaSyCnnVOMmrh2caF0OiMkNVpwOOScyO_Z3tY",
-  authDomain: "coachv2-app.firebaseapp.com",
-  projectId: "coachv2-app",
-  storageBucket: "coachv2-app.firebasestorage.app",
-  messagingSenderId: "967180421561",
-  appId: "1:967180421561:web:cca1b034ef90788b7e0e68"
+  apiKey: "AIzaSyA_yh24eke6_1GI9EfKV6nXVYYsrD7Wtkw",
+  authDomain: "nutrilens-fce87.firebaseapp.com",
+  projectId: "nutrilens-fce87",
+  storageBucket: "nutrilens-fce87.firebasestorage.app",
+  messagingSenderId: "1088128589619",
+  appId: "1:1088128589619:web:1223d6d72755bf484e6846"
 };
 
 const LOCAL_STORAGE_FIREBASE_KEY = 'nutrilens_firebase_config';
@@ -124,8 +124,10 @@ export const getStoredFirebaseConfig = (): FirebaseConfig => {
     const stored = localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (parsed && parsed.apiKey && parsed.projectId) {
+      if (parsed && parsed.apiKey && parsed.projectId && parsed.projectId !== 'coachv2-app') {
         return parsed;
+      } else {
+        localStorage.removeItem(LOCAL_STORAGE_FIREBASE_KEY);
       }
     }
   } catch (err) {
