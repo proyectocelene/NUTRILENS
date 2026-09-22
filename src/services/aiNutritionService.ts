@@ -143,6 +143,10 @@ REGLAS FUNDAMENTALES DE EXACTITUD Y VERACIDAD NUTRICIONAL:
    - totalCalories = (totalProtein * 4) + (totalCarbs * 4) + (totalFat * 9).
    - totalNutrients es la suma de los nutrientes de cada ítem en foods.
 
+4. REGLA DE PROPORCIONALIDAD Y GRAMAJE INTELIGENTE:
+   - Todo alimento en "foods" DEBE incluir el campo numérico "grams" indicando el peso en gramos o ml consumidos (ej: 70, 100, 240).
+   - Si el usuario indica una porción específica (ej: "70g de pechuga", "150g de arroz", "2 rebanadas"), calcula calorías, macros y los 24 nutrientes calibrados con exactitud para ese peso consumido.
+
 ESTRUCTURA DE RESPUESTA JSON ESTRICTA:
 {
   "meal": {
@@ -161,6 +165,7 @@ ESTRUCTURA DE RESPUESTA JSON ESTRICTA:
         "name": "Nombre del alimento o suplemento",
         "emoji": "Emoji del ingrediente (ej: 🍞, 🥚, 🦃, 🧀, 🥛, ☕, 🫒)",
         "amount": "Cantidad (ej: 2 piezas (~100g), 200ml)",
+        "grams": número,
         "calories": número,
         "protein": número,
         "carbs": número,

@@ -4,6 +4,7 @@ import { Meal, MealType, SatietyLevel, DigestionFeeling, EnergyLevel } from '../
 import { FoodItemsList } from '../nutrition/FoodItemsList';
 import { MealHealthCard } from '../nutrition/MealHealthCard';
 import { verifyMealMath, autoBalanceMealMath } from '../../services/jsonParser';
+import { recalculateMealTotals, scaleMealPortion } from '../../services/portionScaler';
 
 interface PreviewMealCardProps {
   meal: Meal;
@@ -323,10 +324,65 @@ export const PreviewMealCard: React.FC<PreviewMealCardProps> = ({ meal, onUpdate
       {/* Tarjeta de Diagnóstico Nutricional, Pros/Cons, Tips y Alertas */}
       <MealHealthCard meal={meal} defaultExpanded={true} />
 
-      {/* Lista de alimentos individualizados */}
-      <div>
-        <span className="text-xs font-bold text-slate-800 block mb-2">Desglose de Alimentos & Suplementos</span>
-        <FoodItemsList foods={meal.foods} />
+      {/* Lista de alimentos individualizados con ajuste inteligente */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <span>Desglose de Alimentos & Suplementos ({meal.foods.length})</span>
+            <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-medium">
+              Porciones Inteligentes Activas
+            </span>
+          </span>
+
+          {/* Escalado rápido de todo el plato */}
+          {meal.foods.length > 0 && (
+            <div className="flex items-center gap-1 text-[10px] font-bold">
+              <span className="text-slate-500 mr-0.5">Escalar plato:</span>
+              {[
+                { label: '70%', factor: 0.7 },
+                { label: '80%', factor: 0.8 },
+                { label: '100%', factor: 1.0 },
+                { label: '120%', factor: 1.2 },
+                { label: '150%', factor: 1.5 }
+              ].map((p) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => {
+                    const scaled = scaleMealPortion(meal, p.factor);
+                    onUpdateMealMeta(scaled);
+                  }}
+                  className="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 transition-all"
+                  title={`Escalar todas las cantidades al ${p.label}`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <FoodItemsList
+          foods={meal.foods}
+          isEditable={true}
+          onUpdateFood={(foodIndex, updatedFood) => {
+            const newFoods = [...meal.foods];
+            newFoods[foodIndex] = updatedFood;
+            const newTotals = recalculateMealTotals(newFoods);
+            onUpdateMealMeta({
+              foods: newFoods,
+              ...newTotals
+            });
+          }}
+          onRemoveFood={(foodIndex) => {
+            const newFoods = meal.foods.filter((_, i) => i !== foodIndex);
+            const newTotals = recalculateMealTotals(newFoods);
+            onUpdateMealMeta({
+              foods: newFoods,
+              ...newTotals
+            });
+          }}
+        />
       </div>
     </div>
   );

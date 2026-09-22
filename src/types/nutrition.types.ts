@@ -65,6 +65,8 @@ export interface FoodItem {
   name: string;
   emoji?: string; // Emoji específico del ingrediente (ej: 🍞, 🥚, 🦃, 🧀, 🥛)
   amount?: string;
+  grams?: number; // Gramos exactos de la porción consumida (ej: 70, 100)
+  servingGrams?: number; // Gramos base de referencia si difiere
   calories: number;
   protein: number; // en gramos
   carbs: number;   // en gramos
@@ -118,7 +120,7 @@ export interface Meal {
   aiFeedback?: string;       // Consejo o análisis bioquímico devuelto por la IA
   isRecipe?: boolean;
   createdAt: number;
-  updatedAt: number;
+  updatedAt?: number;
 }
 
 export interface UserProfileMeta {

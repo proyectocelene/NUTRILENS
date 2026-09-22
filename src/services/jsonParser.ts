@@ -246,11 +246,18 @@ export function normalizeFoodItem(item: any, index: number = 0): FoodItem {
   };
 
   const cleanName = String(name).trim();
+  const rawGrams = item.grams ?? item.gramos ?? item.g;
+  const parsedGrams = rawGrams !== undefined ? safeNumber(rawGrams) : undefined;
+  const rawServingGrams = item.servingGrams ?? item.serving_grams ?? item.peso_porcion;
+  const parsedServingGrams = rawServingGrams !== undefined ? safeNumber(rawServingGrams) : undefined;
+
   return {
     id: item.id || `food_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
     name: cleanName,
     emoji: item.emoji || getSmartFoodEmoji(cleanName),
     amount: String(amount).trim(),
+    grams: parsedGrams && parsedGrams > 0 ? parsedGrams : undefined,
+    servingGrams: parsedServingGrams && parsedServingGrams > 0 ? parsedServingGrams : undefined,
     calories: Math.round(calories * 10) / 10,
     protein: Math.round(protein * 10) / 10,
     carbs: Math.round(carbs * 10) / 10,

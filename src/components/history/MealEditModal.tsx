@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Edit3, Plus, Trash2, Save, X, Utensils, Clock, Calendar } from 'lucide-react';
+import { Edit3, Plus, Trash2, Save, X, Utensils, Clock, Calendar, Scale } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { Meal, FoodItem, MealType } from '../../types/nutrition.types';
 import { dbService } from '../../db/dbService';
+import { scaleFoodItem, parseGramsFromAmount, roundTo } from '../../services/portionScaler';
 
 interface MealEditModalProps {
   isOpen: boolean;
@@ -45,6 +46,15 @@ export const MealEditModal: React.FC<MealEditModalProps> = ({
   const handleUpdateFood = (index: number, key: keyof FoodItem, value: any) => {
     const updated = [...foods];
     updated[index] = { ...updated[index], [key]: value };
+    setFoods(updated);
+  };
+
+  const handleScaleFood = (index: number, targetGrams: number) => {
+    const target = foods[index];
+    if (!target) return;
+    const scaled = scaleFoodItem(target, targetGrams);
+    const updated = [...foods];
+    updated[index] = scaled;
     setFoods(updated);
   };
 
@@ -236,9 +246,17 @@ export const MealEditModal: React.FC<MealEditModalProps> = ({
                     <input
                       type="text"
                       value={food.amount || ''}
-                      onChange={(e) => handleUpdateFood(idx, 'amount', e.target.value)}
+                      onChange={(e) => {
+                        const newAmount = e.target.value;
+                        handleUpdateFood(idx, 'amount', newAmount);
+                        const parsedG = parseGramsFromAmount(newAmount);
+                        if (parsedG && parsedG > 0) {
+                          handleScaleFood(idx, parsedG);
+                        }
+                      }}
                       placeholder="Porción (ej: 100g)"
-                      className="w-28 bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-emerald-500"
+                      className="w-28 bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-emerald-500 font-mono"
+                      title="Escribe la porción con gramos (ej: 70g) para auto-escalar macros proporcionalmente"
                     />
                     <button
                       type="button"
@@ -248,6 +266,22 @@ export const MealEditModal: React.FC<MealEditModalProps> = ({
                     >
                       <Trash2 size={14} />
                     </button>
+                  </div>
+
+                  {/* Acceso rápido a porciones comunes */}
+                  <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                    <Scale size={11} className="text-emerald-700 shrink-0" />
+                    <span>Ajuste rápido:</span>
+                    {[50, 70, 100, 150, 200].map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => handleScaleFood(idx, g)}
+                        className="px-1.5 py-0.2 rounded bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-900 border border-slate-200 font-mono font-bold transition-colors"
+                      >
+                        {g}g
+                      </button>
+                    ))}
                   </div>
 
                   <div className="grid grid-cols-4 gap-1.5 text-[11px] font-mono">

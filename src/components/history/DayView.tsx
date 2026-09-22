@@ -12,8 +12,10 @@ import {
   Heart,
   Flame,
   Zap,
-  Coffee
+  Coffee,
+  Droplets
 } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { Meal, NutritionGoals } from '../../types/nutrition.types';
 import { DateNavigator } from './DateNavigator';
 import { CalorieMeter } from '../nutrition/CalorieMeter';
@@ -22,6 +24,7 @@ import { NutrientScoreBadge } from '../nutrition/NutrientScoreBadge';
 import { NutrientGapAlert } from '../nutrition/NutrientGapAlert';
 import { MicronutrientGrid } from '../nutrition/MicronutrientGrid';
 import { SupplementTrackerCard } from '../nutrition/SupplementTrackerCard';
+import { WaterTrackerCard } from '../nutrition/WaterTrackerCard';
 import { MealCard } from './MealCard';
 import { DailyReflectionCard } from './DailyReflectionCard';
 import { GamificationBar } from '../gamification/GamificationBar';
@@ -56,6 +59,26 @@ export const DayView: React.FC<DayViewProps> = ({
   const [isSuggesterOpen, setIsSuggesterOpen] = useState(false);
   const [isChefPromptOpen, setIsChefPromptOpen] = useState(false);
   const [isPortionGuideOpen, setIsPortionGuideOpen] = useState(false);
+
+  // Registro diario en IndexedDB para hidratación y hábitos
+  const dailyLog = useLiveQuery(async () => {
+    return await dbService.getDailyLog(selectedDate);
+  }, [selectedDate]);
+
+  // Cálculo de meta de agua según día: Lun-Sáb (3h entreno gym+cardio) = 4,800ml, Dom = 3,500ml
+  const [sYear, sMonth, sDay] = selectedDate.split('-').map(Number);
+  const isSunday = new Date(sYear, sMonth - 1, sDay).getDay() === 0;
+  const waterTargetL = isSunday ? 3.5 : 4.8;
+  const currentWaterMl = dailyLog?.waterMl || 0;
+  const currentWaterL = (currentWaterMl / 1000).toFixed(1);
+  const isWaterMet = currentWaterMl >= waterTargetL * 1000;
+
+  // Sodio deportivo: comidas + shakers/adicionado
+  const targetSodium = goals.microGoals?.sodium_mg || 3500;
+  const mealsSodium = Math.round(dailySummary.totalNutrients.sodium_mg || 0);
+  const manualSodium = dailyLog?.sodiumMg || 0;
+  const totalSodium = mealsSodium + manualSodium;
+  const isSodiumMet = totalSodium >= targetSodium;
 
   const maxCaffeine = goals.profile?.caffeineDailyMaxMg || 400;
   const cutoffHour = goals.profile?.caffeineCutoffHour || 15;
@@ -114,12 +137,18 @@ export const DayView: React.FC<DayViewProps> = ({
           }`}
         >
           <Zap size={15} className={activeDaySection === 'supplements' ? 'text-purple-700' : 'text-slate-400'} />
-          <span>Suplementos</span>
-          {mealsCaffeine > 0 && (
+          <span>Suplementos & Agua</span>
+          {currentWaterMl > 0 ? (
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+              isWaterMet ? 'bg-emerald-100 text-emerald-800' : 'bg-sky-100 text-sky-800'
+            }`}>
+              {currentWaterL}L
+            </span>
+          ) : mealsCaffeine > 0 ? (
             <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 font-mono font-bold">
               {mealsCaffeine}mg
             </span>
-          )}
+          ) : null}
         </button>
 
         <button
@@ -240,6 +269,34 @@ export const DayView: React.FC<DayViewProps> = ({
                 >
                   <Zap size={13} className={mealsCreatine >= 5 ? 'text-emerald-600' : 'text-purple-600'} />
                   <span>Creatina: {mealsCreatine} / 5g {mealsCreatine >= 5 ? '✓' : ''}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveDaySection('supplements')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-colors ${
+                    isWaterMet
+                      ? 'bg-sky-50 text-sky-900 border-sky-300 font-bold'
+                      : 'bg-sky-50/70 hover:bg-sky-100 text-sky-800 border-sky-200'
+                  }`}
+                  title={`Meta de hidratación deportiva: ${waterTargetL}L`}
+                >
+                  <Droplets size={13} className={isWaterMet ? 'text-sky-600' : 'text-sky-500'} />
+                  <span>Agua: {currentWaterL} / {waterTargetL}L {isWaterMet ? '✓' : ''}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveDaySection('supplements')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-colors ${
+                    isSodiumMet
+                      ? 'bg-sky-50 text-sky-900 border-sky-300 font-bold'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
+                  title={`Sodio deportivo: ${totalSodium}/${targetSodium} mg (Comidas: ${mealsSodium}mg + Shakers: ${manualSodium}mg)`}
+                >
+                  <span className="text-xs">🧂</span>
+                  <span>Sodio: {totalSodium} / {targetSodium} mg {isSodiumMet ? '✓' : ''}</span>
                 </button>
 
                 {hasLateCaffeine && (
@@ -405,9 +462,13 @@ export const DayView: React.FC<DayViewProps> = ({
         </div>
       )}
 
-      {/* SECCIÓN 2: SUPLEMENTACIÓN & CRONOBIOLOGÍA */}
+      {/* SECCIÓN 2: SUPLEMENTACIÓN & HIDRATACIÓN */}
       {activeDaySection === 'supplements' && (
         <div className="space-y-4 animate-fadeIn">
+          <WaterTrackerCard
+            date={selectedDate}
+            goals={goals}
+          />
           <SupplementTrackerCard
             date={selectedDate}
             meals={dailySummary.meals}
@@ -460,6 +521,10 @@ export const DayView: React.FC<DayViewProps> = ({
       {/* SECCIÓN 4: HÁBITOS, BIOFEEDBACK Y NOTAS */}
       {activeDaySection === 'reflection' && (
         <div className="space-y-4 animate-fadeIn">
+          <WaterTrackerCard
+            date={selectedDate}
+            goals={goals}
+          />
           <SupplementTrackerCard
             date={selectedDate}
             meals={dailySummary.meals}

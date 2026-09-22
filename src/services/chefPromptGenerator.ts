@@ -85,7 +85,8 @@ Considerando que son las ${currentTime}, propón 2 opciones realistas, rápidas 
 3. TIPS DE SALUD Y VARIANTES:
    - Tips para maximizar la absorción de micronutrientes y cómo hacerlo aún más saludable.
 4. BLOQUE JSON EN FORMATO NUTRILENS (MANDATORIO):
-   - Para la Opción 1 recomendada, entrega ÚNICA Y EXCLUSIVAMENTE el bloque JSON en formato NutriLens para que yo pueda copiarlo y pegarlo directamente en mi app:
+   - Para la Opción 1 recomendada, entrega ÚNICA Y EXCLUSIVAMENTE el bloque JSON en formato NutriLens para que yo pueda copiarlo y pegarlo directamente en mi app.
+   - Cada alimento en 'foods' debe incluir 'grams' numérico para escalado inteligente de porciones:
 
 \`\`\`json
 {
@@ -104,6 +105,7 @@ Considerando que son las ${currentTime}, propón 2 opciones realistas, rápidas 
       "name": "Nombre alimento 1",
       "emoji": "🥩",
       "amount": "200g",
+      "grams": 200,
       "calories": 0,
       "protein": 0,
       "carbs": 0,

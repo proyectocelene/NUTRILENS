@@ -159,12 +159,12 @@ export function getDayNutritionalAlerts(meals: Meal[], cutoffHour: number = 15):
     });
   }
 
-  if (totalSodium >= 2300) {
+  if (totalSodium >= 4500) {
     alerts.push({
       id: 'day_high_sodium',
       type: 'warning',
-      title: 'Límite Diario de Sodio Superado',
-      description: 'Has superado el consumo recomendado de 2,300 mg de sodio hoy. Aumenta tu hidratación para equilibrar el balance electrolítico.',
+      title: 'Consumo Diario Muy Alto de Sodio',
+      description: 'Has superado los 4,500 mg de sodio hoy. Si entrenaste con alta sudoración y tomaste tus ~4.8L de agua, está justificado; en días de menor sudoración equilibra con más potasio.',
       metric: `${Math.round(totalSodium)} mg`,
       category: 'minerals'
     });

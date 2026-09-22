@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Zap, Moon, AlertTriangle, ShieldCheck, Plus, Check, Coffee, Droplets, Info } from 'lucide-react';
+import { Zap, Moon, AlertTriangle, ShieldCheck, Plus, Check, Coffee, Droplets, Info, Minus, Sparkles, RotateCcw } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
@@ -33,6 +33,7 @@ export const SupplementTrackerCard: React.FC<SupplementTrackerCardProps> = ({
   const maxCaffeine = goals.profile?.caffeineDailyMaxMg || 400; // FDA recomendación 400mg
   const cutoffHour = goals.profile?.caffeineCutoffHour || 15; // 15:00 hrs (3 PM)
   const targetCreatine = 5; // 5g saturación diaria
+  const targetSodium = goals.microGoals?.sodium_mg || 3500; // 3,500 mg meta deportiva
 
   // Cafeína acumulada en comidas del día
   const mealsCaffeine = Math.round(dailyNutrients.caffeine_mg || 0);
@@ -45,6 +46,12 @@ export const SupplementTrackerCard: React.FC<SupplementTrackerCardProps> = ({
     ? dailyLog.creatineG
     : (dailyLog?.creatineTaken ? 5 : 0);
   const totalCreatine = Math.round((mealsCreatine + manualCreatine) * 10) / 10;
+
+  // Sodio acumulado en comidas vs adicionado a bebidas/shakers
+  const mealsSodium = Math.round(dailyNutrients.sodium_mg || 0);
+  const manualSodium = dailyLog?.sodiumMg || 0;
+  const totalSodium = mealsSodium + manualSodium;
+  const sodiumPercent = Math.min(100, Math.round((totalSodium / targetSodium) * 100));
 
   // Chequeo de cronobiología de cafeína (después de cutoffHour)
   const lateCaffeineMeals: { name: string; time: string; caffeine: number }[] = [];
@@ -86,6 +93,7 @@ export const SupplementTrackerCard: React.FC<SupplementTrackerCardProps> = ({
       waterMl: dailyLog?.waterMl,
       completedGoals: dailyLog?.completedGoals,
       caffeineMg: dailyLog?.caffeineMg,
+      sodiumMg: dailyLog?.sodiumMg,
       creatineTaken: newCreatineTaken,
       creatineG: newCreatineG
     };
@@ -114,6 +122,7 @@ export const SupplementTrackerCard: React.FC<SupplementTrackerCardProps> = ({
       completedGoals: dailyLog?.completedGoals,
       creatineTaken: dailyLog?.creatineTaken,
       creatineG: dailyLog?.creatineG,
+      sodiumMg: dailyLog?.sodiumMg,
       caffeineMg: newCaffeine
     };
 
@@ -132,7 +141,54 @@ export const SupplementTrackerCard: React.FC<SupplementTrackerCardProps> = ({
       completedGoals: dailyLog?.completedGoals,
       creatineTaken: dailyLog?.creatineTaken,
       creatineG: dailyLog?.creatineG,
+      sodiumMg: dailyLog?.sodiumMg,
       caffeineMg: 0
+    };
+
+    await dbService.updateDailyLog(updatedLog);
+    setIsSaving(false);
+  };
+
+  // Manejo de añadir sodio manual (a shaker, botellas o electrolitos)
+  const handleAddSodium = async (mg: number) => {
+    setIsSaving(true);
+    const newSodium = Math.max(0, (dailyLog?.sodiumMg || 0) + mg);
+
+    const updatedLog: DbDailyLog = {
+      id: dailyLog?.id || `log_${date}`,
+      date,
+      reasonTag: dailyLog?.reasonTag,
+      reflectionNotes: dailyLog?.reflectionNotes,
+      waterMl: dailyLog?.waterMl,
+      completedGoals: dailyLog?.completedGoals,
+      creatineTaken: dailyLog?.creatineTaken,
+      creatineG: dailyLog?.creatineG,
+      caffeineMg: dailyLog?.caffeineMg,
+      sodiumMg: newSodium
+    };
+
+    await dbService.updateDailyLog(updatedLog);
+
+    if (newSodium >= 500 && (dailyLog?.sodiumMg || 0) < 500) {
+      awardXp(30, 'Electrólitos & Sodio Deportivo');
+    }
+
+    setIsSaving(false);
+  };
+
+  const handleResetSodiumManual = async () => {
+    setIsSaving(true);
+    const updatedLog: DbDailyLog = {
+      id: dailyLog?.id || `log_${date}`,
+      date,
+      reasonTag: dailyLog?.reasonTag,
+      reflectionNotes: dailyLog?.reflectionNotes,
+      waterMl: dailyLog?.waterMl,
+      completedGoals: dailyLog?.completedGoals,
+      creatineTaken: dailyLog?.creatineTaken,
+      creatineG: dailyLog?.creatineG,
+      caffeineMg: dailyLog?.caffeineMg,
+      sodiumMg: 0
     };
 
     await dbService.updateDailyLog(updatedLog);
@@ -153,7 +209,7 @@ export const SupplementTrackerCard: React.FC<SupplementTrackerCardProps> = ({
               <Badge variant="purple" size="sm">Metas Diarias & Cronobiología</Badge>
             </div>
             <p className="text-xs text-slate-500">
-              Control de ingesta de Creatina (5g) y límites seguros de Cafeína con alerta de sueño.
+              Control del Trío de Rendimiento: Cafeína, Creatina (5g) y Sodio/Electrólitos ({targetSodium}mg).
             </p>
           </div>
         </div>
@@ -173,19 +229,22 @@ export const SupplementTrackerCard: React.FC<SupplementTrackerCardProps> = ({
         <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2 animate-fadeIn">
           <div className="font-bold text-slate-900 flex items-center gap-1.5">
             <ShieldCheck size={15} className="text-emerald-600" />
-            <span>Pautas Clínicas de Suplementación:</span>
+            <span>Pautas Clínicas de Suplementación & Rendimiento:</span>
           </div>
           <p className="leading-relaxed">
-            • <strong>Creatina Monohidrato (5g/día):</strong> Aumenta los depósitos intramusculares de fosfocreatina (ATP-PCr), mejorando potencia anaeróbica, ganancia de masa magra y función neurológica. Su absorción es acumulativa por saturación celular; no depende del timing diario.
+            • <strong>Creatina Monohidrato (5g/día):</strong> Aumenta los depósitos intramusculares de fosfocreatina (ATP-PCr). Su absorción requiere un gradiente de sodio activo (transportador CreaT-1).
           </p>
           <p className="leading-relaxed">
-            • <strong>Cafeína (Límite seguro ≤ 400mg/día - FDA / EFSA):</strong> Su vida media plasmática es de 5 a 7 horas. Consumir cafeína pasadas las 15:00 hrs bloquea competitivamente los receptores de adenosina en el tálamo y corteza, deteriorando la fase N3 de sueño profundo (ondas lentas) y la regeneración neuromuscular nocturna.
+            • <strong>Sodio & Balance Hídrico (Meta deportiva: 3,500mg/día):</strong> Al entrenar 3 horas (2h pesas + 1h cardio en Rosarito) y beber ~5L de agua purificada, el sodio previene la hiponatremia dilucional, mantiene el bombeo muscular y retiene el agua dentro del músculo.
+          </p>
+          <p className="leading-relaxed">
+            • <strong>Cafeína (Límite seguro ≤ 400mg/día - FDA):</strong> Consumir antes de las 15:00 hrs para evitar el bloqueo nocturno de receptores de adenosina y proteger el sueño profundo N3.
           </p>
         </div>
       )}
 
-      {/* Grid de 2 Columnas: Cafeína y Creatina */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Grid de 3 Columnas: Cafeína, Creatina y Sodio */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {/* TARJETA CAFEÍNA */}
         <div className={`p-4 rounded-2xl border transition-all ${
           isCaffeineOverLimit
@@ -387,6 +446,132 @@ export const SupplementTrackerCard: React.FC<SupplementTrackerCardProps> = ({
               <Droplets size={12} className="text-sky-500 shrink-0" />
               <span>Acompaña la creatina con +500ml de agua para hidratación celular.</span>
             </div>
+          </div>
+        </div>
+
+        {/* TARJETA SODIO & ELECTRÓLITOS */}
+        <div className={`p-4 rounded-2xl border transition-all md:col-span-2 xl:col-span-1 ${
+          totalSodium >= targetSodium
+            ? 'bg-sky-50/50 border-sky-300 ring-2 ring-sky-500/10'
+            : 'bg-slate-50/70 border-slate-200'
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-sky-100 text-sky-800">
+                <Sparkles size={16} />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-900 block">Sodio & Electrólitos</span>
+                <span className="text-[10px] text-slate-500">Meta deportiva: {targetSodium} mg</span>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className={`text-base font-black font-mono ${
+                totalSodium >= targetSodium ? 'text-sky-700' : 'text-slate-900'
+              }`}>
+                {totalSodium}
+              </span>
+              <span className="text-xs text-slate-500 font-medium"> / {targetSodium} mg</span>
+            </div>
+          </div>
+
+          {/* Barra de Progreso de Sodio */}
+          <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden mb-2">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                totalSodium >= targetSodium
+                  ? 'bg-emerald-500'
+                  : 'bg-gradient-to-r from-sky-400 to-blue-600'
+              }`}
+              style={{ width: `${sodiumPercent}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-[11px] mb-3">
+            <span className={`font-semibold ${
+              totalSodium >= targetSodium ? 'text-emerald-700 font-bold' : 'text-sky-800'
+            }`}>
+              {totalSodium >= targetSodium
+                ? '🌊 Balance electrolítico e hídrico cubierto'
+                : `Faltan ${Math.max(0, targetSodium - totalSodium)} mg para proteger tus 4.8L`}
+            </span>
+            <span className="text-slate-400 font-mono text-[10px]">
+              {sodiumPercent}%
+            </span>
+          </div>
+
+          {/* Desglose de origen */}
+          <div className="p-2 rounded-xl bg-white/80 border border-slate-200/70 text-[10px] text-slate-600 mb-2.5 space-y-0.5 font-medium">
+            <div className="flex justify-between">
+              <span>🍽️ De comidas sólidas:</span>
+              <span className="font-mono font-bold text-slate-900">{mealsSodium} mg</span>
+            </div>
+            <div className="flex justify-between">
+              <span>🧂 Añadido en shakers / agua:</span>
+              <span className="font-mono font-bold text-sky-700">+{manualSodium} mg</span>
+            </div>
+          </div>
+
+          {/* Botones de Ingesta Rápida de Sodio */}
+          <div className="space-y-1.5 pt-1 border-t border-slate-200/60">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+              Añadir a Agua / Shaker:
+            </span>
+            <div className="grid grid-cols-3 gap-1.5">
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => handleAddSodium(500)}
+                className="py-1 px-1.5 rounded-lg bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-300 text-[11px] font-bold text-slate-800 transition-all text-center shadow-2xs"
+                title="Pizca de sal de mar en 1L de agua"
+              >
+                +500 mg
+                <span className="block text-[9px] text-slate-400 font-normal">Pizca Sal</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => handleAddSodium(1000)}
+                className="py-1 px-1.5 rounded-lg bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-300 text-[11px] font-bold text-slate-800 transition-all text-center shadow-2xs"
+                title="1/2 cdta sal en Shaker 1.5L entreno"
+              >
+                +1,000 mg
+                <span className="block text-[9px] text-slate-400 font-normal">½ cdta Sal</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => handleAddSodium(1500)}
+                className="py-1 px-1.5 rounded-lg bg-white hover:bg-sky-50 border border-slate-200 hover:border-sky-300 text-[11px] font-bold text-slate-800 transition-all text-center shadow-2xs"
+                title="Sobre de electrolitos / Suero oral"
+              >
+                +1,500 mg
+                <span className="block text-[9px] text-slate-400 font-normal">Electrolitos</span>
+              </button>
+            </div>
+
+            {manualSodium > 0 && (
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  disabled={isSaving}
+                  onClick={() => handleAddSodium(-500)}
+                  className="text-[10px] text-slate-500 hover:text-rose-600 font-medium flex items-center gap-0.5"
+                >
+                  <Minus size={11} /> -500 mg
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetSodiumManual}
+                  className="text-[10px] text-rose-600 hover:underline font-medium"
+                >
+                  Restablecer manual
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

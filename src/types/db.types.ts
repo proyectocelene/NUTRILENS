@@ -57,6 +57,7 @@ export interface DbDailyLog {
   creatineTaken?: boolean;
   creatineG?: number;
   caffeineMg?: number;
+  sodiumMg?: number;
 }
 
 export interface Achievement {

@@ -54,8 +54,11 @@ REGLAS ESTRICTAS:
    - Lípidos: saturated_fat_g, monounsaturated_fat_g, polyunsaturated_fat_g, trans_fat_g, omega3_g, cholesterol_mg, choline_mg
    - Vitaminas: vitamin_c_mg, vitamin_d_iu, vitamin_a_mcg, vitamin_b12_mcg, vitamin_b6_mg, folate_mcg, vitamin_e_mg, vitamin_k_mcg
     - Minerales y otros: iron_mg, magnesium_mg, potassium_mg, calcium_mg, zinc_mg, sodium_mg, phosphorus_mg, selenium_mcg, sugar_g
-    - Suplementos & Estimulantes: caffeine_mg (MANDATORIO si hay café, espresso, té, bebidas energéticas, refrescos de cola o pre-entrenos), creatine_g (si hay creatina)
-3. Responde ÚNICA Y EXCLUSIVAMENTE con este bloque JSON válido (sin texto extra):
+3. PORCIONES Y GRAMAJE INTELIGENTE:
+   - Especifica SIEMPRE el campo numérico "grams" en cada alimento con los gramos/ml consumidos (ej: "grams": 70, o "grams": 100).
+   - En "amount" describe la porción natural con los gramos especificados (ej: "2 rebanadas (60g)", "70g", "1 taza (240ml)").
+   - Todos los macros y 24 micronutrientes deben corresponder con exactitud matemática a esa cantidad específica en gramos consumida.
+4. Responde ÚNICA Y EXCLUSIVAMENTE con este bloque JSON válido (sin texto extra):
 
 {
   "name": "Nombre descriptivo del plato",
@@ -73,6 +76,7 @@ REGLAS ESTRICTAS:
       "name": "Nombre del alimento 1",
       "emoji": "🍞",
       "amount": "2 rebanadas (60g)",
+      "grams": 60,
       "calories": 0,
       "protein": 0,
       "carbs": 0,

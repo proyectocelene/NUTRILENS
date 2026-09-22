@@ -18,7 +18,9 @@ import {
   CheckCircle2,
   Sparkles,
   SlidersHorizontal,
-  Eye
+  Eye,
+  Utensils,
+  ChefHat
 } from 'lucide-react';
 import { db } from '../../db';
 import { dbService } from '../../db/dbService';
@@ -31,6 +33,8 @@ import { BatchFoodEditorModal } from './BatchFoodEditorModal';
 import { DatabaseAuditorModal } from '../analytics/DatabaseAuditorModal';
 import { CanonicalFoodEditModal } from './CanonicalFoodEditModal';
 import { LearnedFoodEditModal } from './LearnedFoodEditModal';
+import { LogFoodPortionModal } from './LogFoodPortionModal';
+import { CookRecipeModal } from './CookRecipeModal';
 import { getSmartFoodEmoji } from '../../utils/foodEmoji';
 
 export const CanonicalFoodsView: React.FC = () => {
@@ -45,6 +49,12 @@ export const CanonicalFoodsView: React.FC = () => {
   const [editingFood, setEditingFood] = useState<CanonicalFood | null>(null);
   const [editingLearnedFood, setEditingLearnedFood] = useState<LearnedFood | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Estados para Ingerir Alimento y Cocinar / Armar Receta
+  const [selectedFoodToLog, setSelectedFoodToLog] = useState<CanonicalFood | LearnedFood | null>(null);
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [selectedFoodToCook, setSelectedFoodToCook] = useState<CanonicalFood | LearnedFood | null>(null);
+  const [isCookModalOpen, setIsCookModalOpen] = useState(false);
 
   const canonicalFoods = useLiveQuery(async () => {
     return await db.canonicalFoods.orderBy('name').toArray();
@@ -142,6 +152,15 @@ export const CanonicalFoodsView: React.FC = () => {
               className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center gap-2 border border-white/20 transition-all"
             >
               <Plus size={16} /> ➕ Agregar Manual
+            </button>
+            <button
+              onClick={() => {
+                setSelectedFoodToCook(null);
+                setIsCookModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-400/20 transition-all active:scale-95"
+            >
+              <ChefHat size={16} /> 🍳 Cocinar / Armar Receta
             </button>
             <button
               onClick={() => setIsBatchModalOpen(true)}
@@ -335,6 +354,33 @@ export const CanonicalFoodsView: React.FC = () => {
                     )}
                   </div>
                 )}
+
+                {/* Acciones principales: Ingerir Alimento & Cocinar / Receta */}
+                <div className="pt-2.5 mt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedFoodToCook(food);
+                      setIsCookModalOpen(true);
+                    }}
+                    className="text-xs text-indigo-700 hover:text-indigo-900 font-bold flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-indigo-50 border border-transparent hover:border-indigo-200 transition-all"
+                    title="Usar este alimento para cocinar o armar una receta"
+                  >
+                    <ChefHat size={14} className="text-indigo-600" />
+                    <span>Cocinar / Receta</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSelectedFoodToLog(food);
+                      setIsLogModalOpen(true);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all"
+                    title="Registrar porción consumida en tu diario de hoy"
+                  >
+                    <Utensils size={13} />
+                    <span>Ingerir</span>
+                  </button>
+                </div>
               </Card>
             );
           })}
@@ -424,15 +470,41 @@ export const CanonicalFoodsView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Pie de Tarjeta: Acciones Editar e Inspeccionar / Promover */}
-                  <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <button
-                      onClick={() => openLearnedModal(item)}
-                      className="text-xs text-indigo-700 hover:text-indigo-900 font-bold flex items-center gap-1"
-                    >
-                      <Eye size={13} />
-                      <span>Ver Nutrientes</span>
-                    </button>
+                  {/* Pie de Tarjeta: Acciones Editar e Inspeccionar / Ingerir / Cocinar / Promover */}
+                  <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openLearnedModal(item)}
+                        className="text-xs text-slate-500 hover:text-slate-800 font-bold flex items-center gap-1 p-1 rounded-lg"
+                        title="Ver 25 nutrientes"
+                      >
+                        <Eye size={13} />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setSelectedFoodToCook(item);
+                          setIsCookModalOpen(true);
+                        }}
+                        className="px-2 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold text-xs flex items-center gap-1 border border-indigo-200 transition-all"
+                        title="Cocinar con este alimento"
+                      >
+                        <ChefHat size={12} />
+                        <span>Cocinar</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setSelectedFoodToLog(item);
+                          setIsLogModalOpen(true);
+                        }}
+                        className="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-2xs active:scale-95 transition-all"
+                        title="Registrar porción en tu diario de hoy"
+                      >
+                        <Utensils size={12} />
+                        <span>Ingerir</span>
+                      </button>
+                    </div>
 
                     {item.isAlreadyCanonical ? (
                       <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
@@ -490,6 +562,28 @@ export const CanonicalFoodsView: React.FC = () => {
         onClose={() => setIsLearnedModalOpen(false)}
         food={editingLearnedFood}
         onPromoted={() => {}}
+      />
+
+      {/* Modal para Ingerir Alimento con Porción Inteligente */}
+      <LogFoodPortionModal
+        isOpen={isLogModalOpen}
+        onClose={() => {
+          setIsLogModalOpen(false);
+          setSelectedFoodToLog(null);
+        }}
+        food={selectedFoodToLog}
+      />
+
+      {/* Modal para Cocinar / Armar Receta con Alimentos del Banco Canónico */}
+      <CookRecipeModal
+        isOpen={isCookModalOpen}
+        onClose={() => {
+          setIsCookModalOpen(false);
+          setSelectedFoodToCook(null);
+        }}
+        canonicalFoods={canonicalFoods}
+        learnedFoods={learnedFoods}
+        initialSelectedFood={selectedFoodToCook}
       />
     </div>
   );

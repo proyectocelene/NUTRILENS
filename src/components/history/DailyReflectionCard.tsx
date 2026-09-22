@@ -167,6 +167,56 @@ export const DailyReflectionCard: React.FC<DailyReflectionCardProps> = ({ date, 
           </div>
         </div>
 
+        {/* Registro de Agua Consumida */}
+        <div className="p-3 rounded-2xl bg-sky-50/60 border border-sky-200/80 space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+              <Droplets size={14} className="text-sky-600" />
+              <span>Agua Ingerida Hoy:</span>
+            </label>
+            <span className="text-xs font-mono font-black text-sky-800">
+              {(waterMl / 1000).toFixed(2)} L ({waterMl} ml)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="0"
+              max="7000"
+              step="100"
+              value={waterMl}
+              onChange={(e) => setWaterMl(Number(e.target.value))}
+              className="flex-1 accent-sky-600 h-2 bg-sky-100 rounded-lg cursor-pointer"
+            />
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setWaterMl(w => Math.max(0, w - 250))}
+                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition-colors"
+                title="Restar 250ml"
+              >
+                -250
+              </button>
+              <button
+                type="button"
+                onClick={() => setWaterMl(w => Math.min(10000, w + 250))}
+                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-white hover:bg-sky-50 text-sky-800 border border-sky-300 transition-colors"
+                title="Sumar 250ml"
+              >
+                +250
+              </button>
+              <button
+                type="button"
+                onClick={() => setWaterMl(w => Math.min(10000, w + 500))}
+                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-sky-100 hover:bg-sky-200 text-sky-900 border border-sky-400 transition-colors"
+                title="Sumar 500ml"
+              >
+                +500
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Notas y Plan para Mañana */}
         <div>
           <label className="text-[11px] font-bold text-slate-700 block mb-1">

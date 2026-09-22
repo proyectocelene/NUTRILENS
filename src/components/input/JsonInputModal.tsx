@@ -13,6 +13,7 @@ import { Meal } from '../../types/nutrition.types';
 import { dbService } from '../../db/dbService';
 import { SAMPLE_JSON_TEMPLATES } from '../../db/seedData';
 import { getLocalDateString, normalizeDateInput } from '../../utils/dateUtils';
+import { formatMealForJson } from '../../services/portionScaler';
 
 import { awardXp, checkAndUpdateStreak, unlockAchievement } from '../../services/gamificationService';
 
@@ -93,10 +94,14 @@ export const JsonInputModal: React.FC<JsonInputModalProps> = ({
     if (parsedMeal) {
       const updated = { ...parsedMeal, ...updates };
       setParsedMeal(updated);
-      setParsedMeals(prev => {
-        if (prev.length <= 1) return [updated];
-        return prev.map(m => m.id === updated.id ? updated : m);
-      });
+      const updatedList = parsedMeals.length > 1
+        ? parsedMeals.map(m => m.id === updated.id ? updated : m)
+        : [updated];
+      setParsedMeals(updatedList);
+
+      // Sincronización automática: actualizar el texto del editor JSON con el cambio estructurado
+      const syncedJson = formatMealForJson(updated, updatedList);
+      setJsonText(syncedJson);
     }
   };
 

@@ -8,6 +8,7 @@ import { MealHealthCard } from '../nutrition/MealHealthCard';
 import { dbService } from '../../db/dbService';
 import { getSmartFoodEmoji } from '../../utils/foodEmoji';
 import { MealEditModal } from './MealEditModal';
+import { roundTo } from '../../services/portionScaler';
 
 interface MealCardProps {
   meal: Meal;
@@ -100,12 +101,17 @@ export const MealCard: React.FC<MealCardProps> = ({ meal, onDeleted, onReuseJson
         {/* Resumen de Macros */}
         <div className="text-right shrink-0 pl-1">
           <span className="text-sm sm:text-base font-extrabold text-amber-800 block font-mono">
-            {meal.totalCalories} <span className="text-[10px] sm:text-xs text-slate-500 font-normal">kcal</span>
+            {Math.round(meal.totalCalories)} <span className="text-[10px] sm:text-xs text-slate-500 font-normal">kcal</span>
           </span>
-          <div className="text-[10px] sm:text-[11px] space-x-1 sm:space-x-1.5 font-bold mt-0.5">
-            <span className="text-emerald-700">{meal.totalProtein}g P</span>
-            <span className="text-sky-700">{meal.totalCarbs}g C</span>
-            <span className="text-amber-700">{meal.totalFat}g G</span>
+          <div className="text-[10px] sm:text-[11px] space-x-1 sm:space-x-1.5 font-bold mt-0.5 font-mono">
+            <span className="text-emerald-700">{roundTo(meal.totalProtein, 1)}g P</span>
+            <span className="text-sky-700">{roundTo(meal.totalCarbs, 1)}g C</span>
+            <span className="text-amber-700">{roundTo(meal.totalFat, 1)}g G</span>
+            {meal.totalNutrients?.sodium_mg !== undefined && meal.totalNutrients.sodium_mg > 0 && (
+              <span className="text-slate-600 font-semibold" title={`Sodio: ${Math.round(meal.totalNutrients.sodium_mg)} mg`}>
+                🧂{Math.round(meal.totalNutrients.sodium_mg)}mg
+              </span>
+            )}
           </div>
         </div>
       </div>
